@@ -1,0 +1,1 @@
+ALTER TABLE public.objectives ADD COLUMN bonus numeric DEFAULT 0;

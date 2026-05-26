@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN badge_number text DEFAULT NULL;

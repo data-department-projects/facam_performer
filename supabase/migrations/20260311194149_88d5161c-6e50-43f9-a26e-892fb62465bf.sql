@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS manager_bonus_budget numeric DEFAULT 0;

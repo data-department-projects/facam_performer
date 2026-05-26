@@ -1,0 +1,1 @@
+ALTER TABLE public.operational_meetings ADD COLUMN animator_ids uuid[] NOT NULL DEFAULT '{}';

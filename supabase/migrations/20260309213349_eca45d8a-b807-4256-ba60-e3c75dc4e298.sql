@@ -1,0 +1,1 @@
+ALTER TABLE public.department_objectives ADD COLUMN kpi_unit text NOT NULL DEFAULT '';
