@@ -35,13 +35,13 @@ export const useObjectiveChangeRequests = (objectiveIds: string[]) => {
       .order("created_at", { ascending: false });
 
     const map: Record<string, ChangeRequestSummary[]> = {};
-    (data || []).forEach((r: any) => {
+    (data || []).forEach((r: ChangeRequestSummary) => {
       if (!map[r.objective_id]) map[r.objective_id] = [];
       map[r.objective_id].push(r);
     });
     setRequestsByObjective(map);
     setLoading(false);
-  }, [objectiveIds.join(",")]);
+  }, [objectiveIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch(); }, [fetch]);
 

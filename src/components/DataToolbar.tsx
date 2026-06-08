@@ -23,7 +23,7 @@ type ImportType = "departments" | "members" | "milestones" | "projects" | "proje
 interface SheetPreview {
   type: ImportType;
   label: string;
-  data: any[];
+  data: unknown[];
   errors: string[];
   selected: boolean;
 }
@@ -39,7 +39,7 @@ const MODULE_SHEETS: Record<ModuleType, ImportType[]> = {
   reports: [],
 };
 
-const SHEET_CONFIGS: { type: ImportType; sheetName: string; label: string; headers: string[]; examples: any[] }[] = [
+const SHEET_CONFIGS: { type: ImportType; sheetName: string; label: string; headers: string[]; examples: Record<string, unknown>[] }[] = [
   {
     type: "departments", sheetName: "Départements", label: "Départements",
     headers: ["id", "nom", "nom_cible_2027", "icone", "couleur", "responsable", "role_actuel", "role_cible_2027", "mission_actuelle", "mission_cible_2027", "services"],
@@ -109,7 +109,7 @@ const SHEET_NAME_MAP: Record<string, ImportType> = {};
 SHEET_CONFIGS.forEach(c => { SHEET_NAME_MAP[c.sheetName.toLowerCase()] = c.type; });
 
 // Parsers
-const parseDepartmentsSheet = (rows: any[]): Department[] =>
+const parseDepartmentsSheet = (rows: Record<string, unknown>[]): Department[] =>
   rows.filter(r => r["id"]).map(r => ({
     id: String(r["id"]).trim(), name: String(r["nom"] || "").trim(), nameTomorrow: String(r["nom_cible_2027"] || r["nom"] || "").trim(),
     icon: String(r["icone"] || "🏢").trim(), color: String(r["couleur"] || "hsl(200 50% 50%)").trim(), head: String(r["responsable"] || "").trim(),
@@ -120,20 +120,20 @@ const parseDepartmentsSheet = (rows: any[]): Department[] =>
     nameChangesTomorrow: false, decomposesTomorrow: false, futureDepartments: [], newDirectionName: "",
   }));
 
-const parseMembersSheet = (rows: any[]) =>
+const parseMembersSheet = (rows: Record<string, unknown>[]) =>
   rows.filter(r => r["departement_id"] && r["nom"]).map(r => ({
     deptId: String(r["departement_id"]).trim(),
     period: String(r["periode"] || "aujourd'hui").trim().toLowerCase(),
     member: { name: String(r["nom"]).trim(), role: String(r["role"] || "").trim(), services: String(r["services_attribues"] || "").split(";").map(s => s.trim()).filter(Boolean) },
   }));
 
-const parseMilestonesSheet = (rows: any[]) =>
+const parseMilestonesSheet = (rows: Record<string, unknown>[]) =>
   rows.filter(r => r["departement_id"] && r["titre"]).map(r => ({
     deptId: String(r["departement_id"]).trim(), year: String(r["annee"] || "2026").trim(),
     ms: { quarter: `${String(r["trimestre"] || "Q1").trim()} ${String(r["annee"] || "2026").trim()}`, title: String(r["titre"]).trim(), description: String(r["description"] || "").trim(), status: String(r["statut"] || "planned").trim().toLowerCase() as Milestone["status"] },
   }));
 
-const parseProjectsSheet = (rows: any[]): Project[] =>
+const parseProjectsSheet = (rows: Record<string, unknown>[]): Project[] =>
   rows.filter(r => r["id"]).map(r => ({
     id: String(r["id"]).trim(), name: String(r["nom"] || "").trim(), description: String(r["description"] || "").trim(), objective: String(r["objectif"] || "").trim(),
     projectLead: String(r["responsable"] || "").split(";").map(s => s.trim()).filter(Boolean), departmentIds: String(r["departements"] || "").split(";").map(s => s.trim()).filter(Boolean),
@@ -141,20 +141,20 @@ const parseProjectsSheet = (rows: any[]): Project[] =>
     color: String(r["couleur"] || "hsl(200 50% 50%)").trim(), milestones: [], createdAt: String(r["date_creation"] || new Date().toISOString().split("T")[0]).trim(),
   }));
 
-const parseProjectCollaboratorsSheet = (rows: any[]) =>
+const parseProjectCollaboratorsSheet = (rows: Record<string, unknown>[]) =>
   rows.filter(r => r["projet_id"] && r["nom"]).map(r => ({
     projectId: String(r["projet_id"]).trim(),
     collab: { name: String(r["nom"]).trim(), role: String(r["role"] || "").trim(), department: String(r["departement"] || "").trim() },
   }));
 
-const parseProjectMilestonesSheet = (rows: any[]) =>
+const parseProjectMilestonesSheet = (rows: Record<string, unknown>[]) =>
   rows.filter(r => r["projet_id"] && r["titre"]).map((r, i) => ({
     projectId: String(r["projet_id"]).trim(),
     ms: { id: `m-import-${Date.now()}-${i}`, quarter: String(r["trimestre"] || "Q1 2026").trim(), title: String(r["titre"]).trim(), description: String(r["description"] || "").trim(),
       status: String(r["statut"] || "planned").trim().toLowerCase() as ProjectMilestone["status"], deadline: String(r["deadline"] || "").trim() || undefined, createdAt: String(r["date_creation"] || new Date().toISOString().split("T")[0]).trim() },
   }));
 
-const parseCommitteesSheet = (rows: any[]): Committee[] =>
+const parseCommitteesSheet = (rows: Record<string, unknown>[]): Committee[] =>
   rows.filter(r => r["id"]).map(r => ({
     id: String(r["id"]).trim(), name: String(r["nom"] || "").trim(), icon: String(r["icone"] || "📋").trim(),
     purpose: String(r["objet"] || "").trim(), responsible: String(r["responsable"] || "").trim(), frequency: String(r["frequence"] || "mensuel").trim().toLowerCase() as Committee["frequency"],
@@ -163,19 +163,19 @@ const parseCommitteesSheet = (rows: any[]): Committee[] =>
     institutions: String(r["institutions"] || "").split(";").map(s => s.trim()).filter(Boolean),
   }));
 
-const parseCommitteeMembersSheet = (rows: any[]) =>
+const parseCommitteeMembersSheet = (rows: Record<string, unknown>[]) =>
   rows.filter(r => r["comite_id"] && r["nom"]).map(r => ({
     comId: String(r["comite_id"]).trim(),
     member: { name: String(r["nom"]).trim(), role: String(r["role"] || "").trim(), departmentId: String(r["departement_id"] || "").trim() || undefined },
   }));
 
-const parseTimeEntriesSheet = (rows: any[]) =>
+const parseTimeEntriesSheet = (rows: Record<string, unknown>[]) =>
   rows.filter(r => r["projet_id"] && r["collaborateur"] && r["date"]).map(r => ({
     projectId: String(r["projet_id"]).trim(), collaboratorName: String(r["collaborateur"]).trim(),
     date: String(r["date"]).trim(), startTime: String(r["heure_debut"] || "09:00").trim(), endTime: String(r["heure_fin"] || "17:00").trim(),
   }));
 
-const parseSheet = (type: ImportType, rows: any[]) => {
+const parseSheet = (type: ImportType, rows: Record<string, unknown>[]) => {
   switch (type) {
     case "departments": return parseDepartmentsSheet(rows);
     case "members": return parseMembersSheet(rows);
@@ -191,12 +191,12 @@ const parseSheet = (type: ImportType, rows: any[]) => {
 };
 
 // Export helpers
-const exportModuleData = (moduleType: ModuleType, departments: Department[], projects: Project[], committees: Committee[], timeEntries: any[]) => {
+const exportModuleData = (moduleType: ModuleType, departments: Department[], projects: Project[], committees: Committee[], timeEntries: Record<string, unknown>[]) => {
   const wb = XLSX.utils.book_new();
   const sheetTypes = MODULE_SHEETS[moduleType];
-  
+
   sheetTypes.forEach(type => {
-    let data: any[] = [];
+    let data: Record<string, unknown>[] = [];
     switch (type) {
       case "departments":
         data = departments.map(d => ({
@@ -302,7 +302,7 @@ const DataToolbar = ({ moduleType }: DataToolbarProps) => {
 
     wb.SheetNames.forEach(sheetName => {
       const sheet = wb.Sheets[sheetName];
-      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+      const rows = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[];
       if (rows.length === 0) return;
       const type = SHEET_NAME_MAP[sheetName.toLowerCase()];
       if (!type || !relevantSheets.includes(type)) return;
@@ -338,7 +338,7 @@ const DataToolbar = ({ moduleType }: DataToolbarProps) => {
 
       const membersSheet = selected.find(s => s.type === "members");
       if (membersSheet) {
-        membersSheet.data.forEach(({ deptId, period, member }: any) => {
+        (membersSheet.data as { deptId: string; period: string; member: TeamMember }[]).forEach(({ deptId, period, member }) => {
           const dept = newDepts.find(d => d.id === deptId);
           if (dept) {
             if (period.includes("cible") || period.includes("2027")) dept.compositionTomorrow.push(member);
@@ -349,7 +349,7 @@ const DataToolbar = ({ moduleType }: DataToolbarProps) => {
 
       const msSheet = selected.find(s => s.type === "milestones");
       if (msSheet) {
-        msSheet.data.forEach(({ deptId, year, ms }: any) => {
+        (msSheet.data as { deptId: string; year: string; ms: Milestone }[]).forEach(({ deptId, year, ms }) => {
           const dept = newDepts.find(d => d.id === deptId);
           if (dept) {
             if (year.includes("2027")) dept.milestones2027.push(ms);
@@ -362,19 +362,19 @@ const DataToolbar = ({ moduleType }: DataToolbarProps) => {
       const projSheet = selected.find(s => s.type === "projects");
       const newProjects: Project[] = projSheet?.data ?? [];
       const pcSheet = selected.find(s => s.type === "project_collaborators");
-      if (pcSheet) pcSheet.data.forEach(({ projectId, collab }: any) => { const p = newProjects.find(p => p.id === projectId); if (p) p.collaborators.push(collab); });
+      if (pcSheet) (pcSheet.data as { projectId: string; collab: ProjectCollaborator }[]).forEach(({ projectId, collab }) => { const p = newProjects.find(p => p.id === projectId); if (p) p.collaborators.push(collab); });
       const pmSheet = selected.find(s => s.type === "project_milestones");
-      if (pmSheet) pmSheet.data.forEach(({ projectId, ms }: any) => { const p = newProjects.find(p => p.id === projectId); if (p) p.milestones.push(ms); });
+      if (pmSheet) (pmSheet.data as { projectId: string; ms: ProjectMilestone }[]).forEach(({ projectId, ms }) => { const p = newProjects.find(p => p.id === projectId); if (p) p.milestones.push(ms); });
       newProjects.forEach(p => addProject(p));
 
       const comSheet = selected.find(s => s.type === "committees");
       const newComs: Committee[] = comSheet?.data ?? [];
       const cmSheet = selected.find(s => s.type === "committee_members");
-      if (cmSheet) cmSheet.data.forEach(({ comId, member }: any) => { const c = newComs.find(c => c.id === comId); if (c) c.members.push(member); });
+      if (cmSheet) (cmSheet.data as { comId: string; member: CommitteeMember }[]).forEach(({ comId, member }) => { const c = newComs.find(c => c.id === comId); if (c) c.members.push(member); });
       newComs.forEach(c => addCommittee(c));
 
       const teSheet = selected.find(s => s.type === "timeentries");
-      if (teSheet) teSheet.data.forEach((e: any) => addEntry(e, ""));
+      if (teSheet) (teSheet.data as ReturnType<typeof parseTimeEntriesSheet>).forEach((e) => addEntry(e as Parameters<typeof addEntry>[0], ""));
 
       const totalItems = selected.reduce((s, p) => s + p.data.length, 0);
       toast({ title: "Import réussi ✓", description: `${totalItems} élément(s) importé(s).` });

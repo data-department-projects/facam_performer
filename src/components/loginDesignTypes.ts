@@ -105,6 +105,7 @@ export interface LoginDesignSettings {
   leftPanelSettings: PanelSettings;
   rightPanelSettings: PanelSettings;
   hiddenElements: string[];
+  _brandVersion?: number;
 }
 
 export const defaultTextStyle = (font: string, color: string, size: number, bold = false): TextStyle => ({
@@ -123,38 +124,39 @@ export const DEFAULT_ELEMENT_POSITIONS: ElementPositions = {
 export const DEFAULT_SETTINGS: LoginDesignSettings = {
   appTitle: "FACAM PERFORMER",
   appSubtitle: "Connectez-vous à votre espace",
-  leftTitle: "Roadmap Organisation",
+  leftTitle: "FACAM STAIRWAY",
   leftDescription:
     "Pilotez votre organisation avec des analyses en temps réel, un suivi des objectifs et des rapports professionnels conçus pour la prise de décision.",
   loginButtonText: "Se connecter",
   forgotPasswordText: "Mot de passe oublié ?",
   appTitleStyle: defaultTextStyle("Montserrat", "#001b61", 24, true),
   appSubtitleStyle: defaultTextStyle("Montserrat", "#001b61B0", 14, false),
-  leftTitleStyle: defaultTextStyle("Montserrat", "#001b61", 36, true),
-  leftDescriptionStyle: defaultTextStyle("Montserrat", "#001b61AA", 16, false),
-  loginButtonStyle: defaultTextStyle("Montserrat", "#000000", 14, true),
+  leftTitleStyle: defaultTextStyle("Montserrat", "#ffffff", 36, true),
+  leftDescriptionStyle: defaultTextStyle("Montserrat", "#ffffffAA", 16, false),
+  loginButtonStyle: defaultTextStyle("Montserrat", "#001b61", 14, true),
   forgotPasswordStyle: defaultTextStyle("Montserrat", "#001b6170", 12, false),
   titleFont: "Montserrat",
   bodyFont: "Montserrat",
-  leftPanelBg: "#f0f4fa",
-  leftPanelText: "#001b61",
+  leftPanelBg: "#001b61",
+  leftPanelText: "#ffffff",
   rightPanelBg: "#ffffff",
   buttonColor: "#ffae03",
-  buttonTextColor: "#000000",
+  buttonTextColor: "#001b61",
   accentColor: "#ffae03",
-  logoUrl: "",
-  leftIconUrl: "/facam_stairway-bleu.png",
+  logoUrl: "/facam_stairway-bleu.png",
+  leftIconUrl: "/facam_stairway-blanc.png",
   backgroundImageUrl: "",
   showLeftIcon: true,
   customTexts: [],
   customImages: [],
   elementPositions: { ...DEFAULT_ELEMENT_POSITIONS },
-  logoSettings: { opacity: 100, size: 100, borderRadius: 16, objectPositionX: 50, objectPositionY: 50 },
-  leftIconSettings: { opacity: 100, size: 200, borderRadius: 0, objectPositionX: 50, objectPositionY: 50 },
+  logoSettings: { opacity: 100, size: 100, borderRadius: 0, objectPositionX: 50, objectPositionY: 50 },
+  leftIconSettings: { opacity: 100, size: 180, borderRadius: 0, objectPositionX: 50, objectPositionY: 50 },
   backgroundImageSettings: { opacity: 20, size: 100, borderRadius: 0, objectPositionX: 50, objectPositionY: 50 },
   leftPanelSettings: { opacity: 100, widthPercent: 50 },
   rightPanelSettings: { opacity: 100, widthPercent: 50 },
   hiddenElements: [],
+  _brandVersion: 2,
 };
 
 export const FONT_OPTIONS = [
@@ -185,8 +187,22 @@ export const COLOR_PRESETS = [
 
 export const STORAGE_KEY = "admin_login_design";
 
-export const migrateSettings = (raw: Record<string, any>): LoginDesignSettings => {
+export const migrateSettings = (raw: Record<string, unknown>): LoginDesignSettings => {
   const s = { ...DEFAULT_SETTINGS, ...raw };
+
+  // Migration v2 : basculer vers l'identité visuelle FACAM STAIRWAY.
+  // Se déclenche une seule fois (quand _brandVersion est absent ou < 2).
+  // Après sauvegarde, _brandVersion = 2 est persisté → ne se ré-applique plus.
+  if (!raw._brandVersion || raw._brandVersion < 2) {
+    s.logoUrl        = DEFAULT_SETTINGS.logoUrl;        // /facam_stairway-bleu.png
+    s.leftIconUrl    = DEFAULT_SETTINGS.leftIconUrl;    // /facam_stairway-blanc.png
+    s.leftPanelBg    = DEFAULT_SETTINGS.leftPanelBg;   // #001b61
+    s.leftPanelText  = DEFAULT_SETTINGS.leftPanelText; // #ffffff
+    s.leftTitleStyle = DEFAULT_SETTINGS.leftTitleStyle;
+    s.leftDescriptionStyle = DEFAULT_SETTINGS.leftDescriptionStyle;
+    s._brandVersion  = 2;
+  }
+
   if (!s.appTitleStyle) s.appTitleStyle = DEFAULT_SETTINGS.appTitleStyle;
   if (!s.appSubtitleStyle) s.appSubtitleStyle = DEFAULT_SETTINGS.appSubtitleStyle;
   if (!s.leftTitleStyle) s.leftTitleStyle = DEFAULT_SETTINGS.leftTitleStyle;

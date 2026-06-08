@@ -57,7 +57,7 @@ const CommitteesView = () => {
 
   const isResponsible = (c: Committee) => {
     if (!user) return false;
-    const ids: string[] = (c as any).responsibleIds || [];
+    const ids: string[] = (c as unknown as { responsibleIds?: string[] }).responsibleIds || [];
     if (ids.includes(user.id)) return true;
     const profile = profiles.find(p => p.user_id === user.id);
     if (profile && c.responsible?.includes(profile.full_name)) return true;
@@ -129,7 +129,7 @@ const CommitteesView = () => {
     const userName = currentProfile?.full_name || "";
     return committees.filter(c => {
       // Check responsibleIds
-      const rIds: string[] = (c as any).responsibleIds || [];
+      const rIds: string[] = (c as unknown as { responsibleIds?: string[] }).responsibleIds || [];
       if (rIds.includes(user.id)) return true;
       // Check responsible name
       if (userName && c.responsible?.includes(userName)) return true;
@@ -145,8 +145,8 @@ const CommitteesView = () => {
     if (isAdmin) { setCanCreateCommittees(true); return; }
     if (!user) return;
     const check = async () => {
-      const { data } = await supabase.from("user_create_permissions" as any).select("can_create_committees").eq("user_id", user.id).maybeSingle();
-      setCanCreateCommittees(!!(data as any)?.can_create_committees);
+      const { data } = await supabase.from("user_create_permissions").select("can_create_committees").eq("user_id", user.id).maybeSingle();
+      setCanCreateCommittees(!!data?.can_create_committees);
     };
     check();
   }, [user, isAdmin]);

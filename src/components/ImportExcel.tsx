@@ -26,14 +26,14 @@ type ImportType = "departments" | "members" | "milestones" | "projects" | "proje
 interface SheetPreview {
   type: ImportType;
   label: string;
-  data: any[];
+  data: unknown[];
   errors: string[];
   selected: boolean;
 }
 
 // ── Parsers ──────────────────────────────────────────────────
 
-const parseDepartmentsSheet = (rows: any[]): Department[] => {
+const parseDepartmentsSheet = (rows: Record<string, unknown>[]): Department[] => {
   return rows.filter(r => r["id"]).map((r, i) => ({
     id: String(r["id"]).trim(),
     name: String(r["nom"] || "").trim(),
@@ -57,7 +57,7 @@ const parseDepartmentsSheet = (rows: any[]): Department[] => {
   }));
 };
 
-const parseMembersSheet = (rows: any[]): { deptId: string; period: string; member: TeamMember }[] => {
+const parseMembersSheet = (rows: Record<string, unknown>[]): { deptId: string; period: string; member: TeamMember }[] => {
   return rows.filter(r => r["departement_id"] && r["nom"]).map(r => ({
     deptId: String(r["departement_id"]).trim(),
     period: String(r["periode"] || "aujourd'hui").trim().toLowerCase(),
@@ -69,7 +69,7 @@ const parseMembersSheet = (rows: any[]): { deptId: string; period: string; membe
   }));
 };
 
-const parseMilestonesSheet = (rows: any[]): { deptId: string; year: string; ms: Milestone }[] => {
+const parseMilestonesSheet = (rows: Record<string, unknown>[]): { deptId: string; year: string; ms: Milestone }[] => {
   return rows.filter(r => r["departement_id"] && r["titre"]).map(r => ({
     deptId: String(r["departement_id"]).trim(),
     year: String(r["annee"] || "2026").trim(),
@@ -82,7 +82,7 @@ const parseMilestonesSheet = (rows: any[]): { deptId: string; year: string; ms: 
   }));
 };
 
-const parseProjectsSheet = (rows: any[]): Project[] => {
+const parseProjectsSheet = (rows: Record<string, unknown>[]): Project[] => {
   return rows.filter(r => r["id"]).map(r => ({
     id: String(r["id"]).trim(),
     name: String(r["nom"] || "").trim(),
@@ -98,7 +98,7 @@ const parseProjectsSheet = (rows: any[]): Project[] => {
   }));
 };
 
-const parseProjectCollaboratorsSheet = (rows: any[]): { projectId: string; collab: ProjectCollaborator }[] => {
+const parseProjectCollaboratorsSheet = (rows: Record<string, unknown>[]): { projectId: string; collab: ProjectCollaborator }[] => {
   return rows.filter(r => r["projet_id"] && r["nom"]).map(r => ({
     projectId: String(r["projet_id"]).trim(),
     collab: {
@@ -109,7 +109,7 @@ const parseProjectCollaboratorsSheet = (rows: any[]): { projectId: string; colla
   }));
 };
 
-const parseProjectMilestonesSheet = (rows: any[]): { projectId: string; ms: ProjectMilestone }[] => {
+const parseProjectMilestonesSheet = (rows: Record<string, unknown>[]): { projectId: string; ms: ProjectMilestone }[] => {
   return rows.filter(r => r["projet_id"] && r["titre"]).map((r, i) => ({
     projectId: String(r["projet_id"]).trim(),
     ms: {
@@ -124,7 +124,7 @@ const parseProjectMilestonesSheet = (rows: any[]): { projectId: string; ms: Proj
   }));
 };
 
-const parseCommitteesSheet = (rows: any[]): Committee[] => {
+const parseCommitteesSheet = (rows: Record<string, unknown>[]): Committee[] => {
   return rows.filter(r => r["id"]).map(r => ({
     id: String(r["id"]).trim(),
     name: String(r["nom"] || "").trim(),
@@ -139,7 +139,7 @@ const parseCommitteesSheet = (rows: any[]): Committee[] => {
   }));
 };
 
-const parseCommitteeMembersSheet = (rows: any[]): { comId: string; member: CommitteeMember }[] => {
+const parseCommitteeMembersSheet = (rows: Record<string, unknown>[]): { comId: string; member: CommitteeMember }[] => {
   return rows.filter(r => r["comite_id"] && r["nom"]).map(r => ({
     comId: String(r["comite_id"]).trim(),
     member: {
@@ -150,7 +150,7 @@ const parseCommitteeMembersSheet = (rows: any[]): { comId: string; member: Commi
   }));
 };
 
-const parseTimeEntriesSheet = (rows: any[]): any[] => {
+const parseTimeEntriesSheet = (rows: Record<string, unknown>[]): Record<string, unknown>[] => {
   return rows.filter(r => r["projet_id"] && r["collaborateur"] && r["date"]).map(r => ({
     projectId: String(r["projet_id"]).trim(),
     collaboratorName: String(r["collaborateur"]).trim(),
@@ -162,7 +162,7 @@ const parseTimeEntriesSheet = (rows: any[]): any[] => {
 
 // ── Sheet config for template generation ──────────────────────
 
-const SHEET_CONFIGS: { type: ImportType; sheetName: string; label: string; headers: string[]; examples: any[] }[] = [
+const SHEET_CONFIGS: { type: ImportType; sheetName: string; label: string; headers: string[]; examples: Record<string, unknown>[] }[] = [
   {
     type: "departments", sheetName: "Départements", label: "Départements",
     headers: ["id", "nom", "nom_cible_2027", "icone", "couleur", "responsable", "role_actuel", "role_cible_2027", "mission_actuelle", "mission_cible_2027", "services"],
@@ -284,7 +284,7 @@ const ImportExcel = () => {
 
     wb.SheetNames.forEach(sheetName => {
       const sheet = wb.Sheets[sheetName];
-      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+      const rows = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[];
       if (rows.length === 0) return;
 
       const type = SHEET_NAME_MAP[sheetName.toLowerCase()];
@@ -293,7 +293,7 @@ const ImportExcel = () => {
       const cfg = SHEET_CONFIGS.find(c => c.type === type);
       if (!cfg) return;
 
-      let parsedData: any[] = [];
+      let parsedData: unknown[] = [];
       try {
         switch (type) {
           case "departments": parsedData = parseDepartmentsSheet(rows); break;
@@ -346,7 +346,7 @@ const ImportExcel = () => {
       // 2. Apply members to departments
       const membersSheet = selected.find(s => s.type === "members");
       if (membersSheet) {
-        membersSheet.data.forEach(({ deptId, period, member }: any) => {
+        (membersSheet.data as { deptId: string; period: string; member: TeamMember }[]).forEach(({ deptId, period, member }) => {
           const dept = newDepts.find(d => d.id === deptId);
           if (dept) {
             if (period.includes("cible") || period.includes("2027")) {
@@ -361,7 +361,7 @@ const ImportExcel = () => {
       // 3. Apply milestones to departments
       const msSheet = selected.find(s => s.type === "milestones");
       if (msSheet) {
-        msSheet.data.forEach(({ deptId, year, ms }: any) => {
+        (msSheet.data as { deptId: string; year: string; ms: Milestone }[]).forEach(({ deptId, year, ms }) => {
           const dept = newDepts.find(d => d.id === deptId);
           if (dept) {
             if (year.includes("2027")) {
@@ -383,7 +383,7 @@ const ImportExcel = () => {
       // Apply collaborators
       const pcSheet = selected.find(s => s.type === "project_collaborators");
       if (pcSheet) {
-        pcSheet.data.forEach(({ projectId, collab }: any) => {
+        (pcSheet.data as { projectId: string; collab: ProjectCollaborator }[]).forEach(({ projectId, collab }) => {
           const proj = newProjects.find(p => p.id === projectId);
           if (proj) proj.collaborators.push(collab);
         });
@@ -392,7 +392,7 @@ const ImportExcel = () => {
       // Apply milestones
       const pmSheet = selected.find(s => s.type === "project_milestones");
       if (pmSheet) {
-        pmSheet.data.forEach(({ projectId, ms }: any) => {
+        (pmSheet.data as { projectId: string; ms: ProjectMilestone }[]).forEach(({ projectId, ms }) => {
           const proj = newProjects.find(p => p.id === projectId);
           if (proj) proj.milestones.push(ms);
         });
@@ -406,7 +406,7 @@ const ImportExcel = () => {
 
       const cmSheet = selected.find(s => s.type === "committee_members");
       if (cmSheet) {
-        cmSheet.data.forEach(({ comId, member }: any) => {
+        (cmSheet.data as { comId: string; member: CommitteeMember }[]).forEach(({ comId, member }) => {
           const com = newComs.find(c => c.id === comId);
           if (com) com.members.push(member);
         });
@@ -417,7 +417,8 @@ const ImportExcel = () => {
       // 6. Time entries
       const teSheet = selected.find(s => s.type === "timeentries");
       if (teSheet) {
-        teSheet.data.forEach((e: any) => addEntry(e, ""));
+        const timeEntries = teSheet.data as ReturnType<typeof parseTimeEntriesSheet>;
+        timeEntries.forEach((e) => addEntry(e as Parameters<typeof addEntry>[0], ""));
       }
 
       const totalItems = selected.reduce((s, p) => s + p.data.length, 0);

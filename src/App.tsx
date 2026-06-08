@@ -18,7 +18,6 @@ import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ForcePasswordChange from "./components/ForcePasswordChange";
 import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -105,7 +104,6 @@ const AppRoutes = () => {
   }
 
   if (isBlocked) return <BlockedScreen />;
-  if (mustChangePassword && !isRecovery) return <ForcePasswordChange />;
 
   return (
     <GlobalDesignProvider>

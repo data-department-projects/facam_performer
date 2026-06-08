@@ -51,7 +51,7 @@ const BadgeManagement = () => {
   const profiles = useProfiles();
   const { departments } = useDepartments();
   const [entries, setEntries] = useState<BadgeEntry[]>([]);
-  const [timeEntries, setTimeEntries] = useState<any[]>([]);
+  const [timeEntries, setTimeEntries] = useState<Array<{ id: string; user_id: string; data: unknown }>>([]);
   const [weekPlannerLink, setWeekPlannerLink] = useState(false);
   const [periodMode, setPeriodMode] = useState<PeriodMode>("range");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
@@ -78,7 +78,7 @@ const BadgeManagement = () => {
   // Helper: check if profile is in Production or Maintenance dept
   const isProductionOrMaintenance = useCallback((departmentId: string | null | undefined) => {
     if (!departmentId) return false;
-    const dept = departments.find((d: any) => d.id === departmentId);
+    const dept = departments.find((d) => d.id === departmentId);
     return dept && ["production", "maintenance"].some(name => dept.name?.toLowerCase().includes(name));
   }, [departments]);
 
@@ -120,20 +120,20 @@ const BadgeManagement = () => {
     const now = format(new Date(), "HH:mm:ss");
     const { fields, max } = getSwipeConfig(category);
     if (existing) {
-      const nextEmpty = fields.find((f) => !(existing as any)[f]);
+      const nextEmpty = fields.find((f) => !(existing as unknown as Record<string, unknown>)[f]);
       if (!nextEmpty) {
         toast({ title: "Maximum atteint", description: `Ce collaborateur a déjà badgé ${max} fois aujourd'hui.`, variant: "destructive" });
         return;
       }
       const { error } = await supabase
         .from("badge_entries")
-        .update({ [nextEmpty]: now, updated_at: new Date().toISOString() } as any)
+        .update({ [nextEmpty]: now, updated_at: new Date().toISOString() } as unknown as Record<string, unknown>)
         .eq("id", existing.id);
       if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
     } else {
       const { error } = await supabase
         .from("badge_entries")
-        .insert({ user_id: userId, badge_date: date, swipe_1: now } as any);
+        .insert({ user_id: userId, badge_date: date, swipe_1: now } as unknown as Record<string, unknown>);
       if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
     }
     await loadEntries();
@@ -144,7 +144,7 @@ const BadgeManagement = () => {
     const timeVal = value || null;
     const { error } = await supabase
       .from("badge_entries")
-      .update({ [field]: timeVal, updated_at: new Date().toISOString() } as any)
+      .update({ [field]: timeVal, updated_at: new Date().toISOString() } as unknown as Record<string, unknown>)
       .eq("id", entryId);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -157,7 +157,7 @@ const BadgeManagement = () => {
     const timeVal = value || null;
     const { error } = await supabase
       .from("badge_entries")
-      .insert({ user_id: userId, badge_date: date, [field]: timeVal } as any);
+      .insert({ user_id: userId, badge_date: date, [field]: timeVal } as unknown as Record<string, unknown>);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
@@ -168,18 +168,18 @@ const BadgeManagement = () => {
   const getSwipeCount = (entry: BadgeEntry | undefined, category: string) => {
     if (!entry) return 0;
     const { fields } = getSwipeConfig(category);
-    return fields.filter((f) => (entry as any)[f]).length;
+    return fields.filter((f) => (entry as unknown as Record<string, unknown>)[f]).length;
   };
 
   const getMaxSwipes = (category: string) => getSwipeConfig(category).max;
 
   const formatTime = (t: string | null) => (t ? t.substring(0, 5) : "—");
 
-  const getDeptName = (deptId: string | null) => {
+  const getDeptName = useCallback((deptId: string | null) => {
     if (!deptId) return "—";
     const dept = departments.find((d) => d.id === deptId);
     return dept?.name || deptId;
-  };
+  }, [departments]);
 
   const computeWorkedHours = (entry: BadgeEntry | undefined, category: string) => {
     if (!entry || !entry.swipe_1) return null;
@@ -214,7 +214,7 @@ const BadgeManagement = () => {
   };
 
   const handleExportXlsx = () => {
-    const rows: any[] = [];
+    const rows: Record<string, unknown>[] = [];
     // Export all days: cadres Mon-Sat, ouvriers Mon-Sun
     const allDays = eachDayOfInterval({ start: effectiveRange.start, end: effectiveRange.end });
     for (const day of allDays) {
@@ -279,11 +279,11 @@ const BadgeManagement = () => {
         const [bh, bm] = badgeArrivalStr.split(":").map(Number);
         const badgeMinutes = bh * 60 + bm;
         const dayTimeEntries = userTimeEntries.filter(te => {
-          const data = te.data as any;
+          const data = te.data as unknown as { date?: string; startTime?: string };
           return data?.date === badgeDate;
         });
         for (const te of dayTimeEntries) {
-          const data = te.data as any;
+          const data = te.data as unknown as { date?: string; startTime?: string };
           if (!data?.startTime) continue;
           const [sh, sm] = data.startTime.split(":").map(Number);
           const startMinutes = sh * 60 + sm;
@@ -381,13 +381,13 @@ const BadgeManagement = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Collaborateur</TableHead>
-                        <TableHead>Département</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-center">Badge arrivée</TableHead>
-                        <TableHead className="text-center">Début activité</TableHead>
-                        <TableHead>Activité</TableHead>
-                        <TableHead className="text-center">Écart</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Département</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Date</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Badge arrivée</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Début activité</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Activité</TableHead>
+                        <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Écart</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -579,11 +579,11 @@ const BadgeManagement = () => {
                     // For cadres tab on weekends: check minimum 2 cadres badged per dept (Production/Maintenance)
                     let weekendCadreAlerts: { deptName: string; count: number }[] = [];
                     if (isWeekend && isCadreTab) {
-                      const prodMaintDepts = departments.filter((d: any) => {
+                      const prodMaintDepts = departments.filter((d) => {
                         const n = (d.name || "").toLowerCase();
                         return n.includes("production") || n.includes("maintenance");
                       });
-                      weekendCadreAlerts = prodMaintDepts.map((dept: any) => {
+                      weekendCadreAlerts = prodMaintDepts.map((dept) => {
                         const deptCadres = dayProfiles.filter((p) => p.department_id === dept.id);
                         const badgedCount = deptCadres.filter((p) => {
                           const e = getEntry(p.user_id, dateStr);
@@ -627,15 +627,15 @@ const BadgeManagement = () => {
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead className="w-48">Collaborateur</TableHead>
-                                  <TableHead className="w-24">N° Badge</TableHead>
-                                  <TableHead className="w-36">Département</TableHead>
+                                  <TableHead className="w-48 text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                                  <TableHead className="w-24 text-[10px] font-semibold text-muted-foreground uppercase">N° Badge</TableHead>
+                                  <TableHead className="w-36 text-[10px] font-semibold text-muted-foreground uppercase">Département</TableHead>
                                   {headersForTab.map((label) => (
                                     <TableHead key={label} className="w-28 text-center">{label}</TableHead>
                                   ))}
-                                  <TableHead className="w-24 text-center">Heures</TableHead>
-                                  <TableHead className="w-20 text-center">Badges</TableHead>
-                                  {weekPlannerLink && isToday && <TableHead className="w-24 text-center">Action</TableHead>}
+                                  <TableHead className="w-24 text-[10px] font-semibold text-muted-foreground uppercase text-center">Heures</TableHead>
+                                  <TableHead className="w-20 text-[10px] font-semibold text-muted-foreground uppercase text-center">Badges</TableHead>
+                                  {weekPlannerLink && isToday && <TableHead className="w-24 text-[10px] font-semibold text-muted-foreground uppercase text-center">Action</TableHead>}
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -647,14 +647,14 @@ const BadgeManagement = () => {
                                   return (
                                     <TableRow key={p.user_id}>
                                       <TableCell className="font-medium text-foreground">{p.full_name}</TableCell>
-                                      <TableCell className="text-xs text-muted-foreground font-mono">{(p as any).badge_number || "—"}</TableCell>
+                                      <TableCell className="text-xs text-muted-foreground font-mono">{p.badge_number || "—"}</TableCell>
                                       <TableCell className="text-muted-foreground text-xs">{getDeptName(p.department_id)}</TableCell>
                                       {fieldsForTab.map((field) => (
                                         <TableCell key={field} className="text-center">
                                           <Input
                                             type="time"
                                             className="w-24 mx-auto text-xs h-8"
-                                            value={entry ? ((entry as any)[field]?.substring(0, 5) || "") : ""}
+                                            value={entry ? ((entry as unknown as Record<string, string | null>)[field]?.substring(0, 5) || "") : ""}
                                             onChange={(e) => {
                                               const val = e.target.value;
                                               if (entry) {

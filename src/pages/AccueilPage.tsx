@@ -56,10 +56,10 @@ const decos = [
 
 const MODULES = [
   { id: "dashboard",       title: "Tableau de bord",       desc: "Vue d'ensemble de l'organisation en temps réel.",                  Icon: BarChart2,    featured: true,  deco: 0 },
-  { id: "orgchart",        title: "Organigramme",           desc: "Structure hiérarchique et départements de l'organisation.",        Icon: Network,      featured: false, deco: 1, iconColor: "#001b61", cardBg: "#f0f4ff" },
-  { id: "hrperformance",   title: "Gestion des Objectifs",  desc: "Définissez, évaluez et suivez les objectifs annuels.",             Icon: Target,       featured: false, deco: 2, iconColor: "#e11d48", cardBg: "#fff1f2" },
   { id: "timeentry",       title: "Saisie du temps",        desc: "Planifiez votre semaine et saisissez vos heures de travail.",      Icon: Clock,        featured: false, deco: 3, iconColor: "#7c3aed", cardBg: "#f5f3ff" },
   { id: "gantt",           title: "Gantt Projets",          desc: "Visualisez le planning de toutes vos missions et échéances.",      Icon: Calendar,     featured: false, deco: 4, iconColor: "#0d9488", cardBg: "#f0fdfa" },
+  { id: "hrperformance",   title: "Gestion des Objectifs",  desc: "Définissez, évaluez et suivez les objectifs annuels.",             Icon: Target,       featured: false, deco: 2, iconColor: "#e11d48", cardBg: "#fff1f2" },
+  { id: "orgchart",        title: "Organigramme",           desc: "Structure hiérarchique et départements de l'organisation.",        Icon: Network,      featured: false, deco: 1, iconColor: "#001b61", cardBg: "#f0f4ff" },
   { id: "projectscomites", title: "Projets & Comités",      desc: "Gérez vos projets stratégiques et comités de direction.",         Icon: FolderKanban, featured: false, deco: 5, iconColor: "#d97706", cardBg: "#fffbeb" },
 ] as const;
 
@@ -68,7 +68,8 @@ interface AccueilPageProps {
 }
 
 const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
+  const isSimpleCollaborator = !isAdmin && !profile?.is_manager;
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -286,7 +287,7 @@ const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-            {MODULES.map((mod, i) => {
+            {MODULES.filter(mod => !(isSimpleCollaborator && (mod.id === "projectscomites" || mod.id === "dashboard"))).map((mod, i) => {
               const { id, title, desc, Icon, featured, deco } = mod;
               const iconColor = !featured && "iconColor" in mod ? mod.iconColor : undefined;
               const cardBg   = !featured && "cardBg"   in mod ? mod.cardBg   : undefined;

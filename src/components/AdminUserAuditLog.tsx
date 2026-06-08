@@ -32,7 +32,7 @@ interface AuditEntry {
   actor_id: string;
   target_user_id: string | null;
   action: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
 }
 
@@ -53,7 +53,7 @@ const AdminUserAuditLog = () => {
   const fetchEntries = useCallback(async () => {
     setLoading(true);
     let query = supabase
-      .from("user_audit_log" as any)
+      .from("user_audit_log")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -66,7 +66,7 @@ const AdminUserAuditLog = () => {
     }
 
     const { data } = await query;
-    setEntries((data as any as AuditEntry[]) ?? []);
+    setEntries((data as unknown as AuditEntry[]) ?? []);
     setLoading(false);
   }, [filterUser, filterAction, limit]);
 
@@ -187,10 +187,10 @@ const AdminUserAuditLog = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-[10px] w-[140px]">Date</TableHead>
-                  <TableHead className="text-[10px]">Action</TableHead>
-                  <TableHead className="text-[10px]">Effectuée par</TableHead>
-                  <TableHead className="text-[10px]">Utilisateur cible</TableHead>
-                  <TableHead className="text-[10px]">Détails</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Action</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Effectuée par</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Utilisateur cible</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Détails</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

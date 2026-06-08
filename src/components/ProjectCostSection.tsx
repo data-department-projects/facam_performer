@@ -22,8 +22,8 @@ const ProjectCostSection = ({ project }: { project: Project }) => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("profiles").select("full_name, salary") as any;
-      if (data) setProfiles(data);
+      const { data } = await supabase.from("profiles").select("full_name, salary");
+      if (data) setProfiles(data as ProfileSalary[]);
     };
     load();
   }, []);
@@ -95,7 +95,7 @@ const ProjectCostSection = ({ project }: { project: Project }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[10px]">Collaborateur</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
                 <TableHead className="text-[10px] text-right">Heures</TableHead>
                 <TableHead className="text-[10px] text-right">Taux horaire</TableHead>
                 <TableHead className="text-[10px] text-right">Coût</TableHead>

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Users, Building2, FolderKanban, Layers, Target, CheckCircle2,
-  AlertTriangle, Clock, TrendingUp, XCircle, BarChart3
+  AlertTriangle, Clock, TrendingUp, XCircle, BarChart3, type LucideIcon
 } from "lucide-react";
 import { parseISO, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -100,7 +100,7 @@ const DGExecutiveReport = () => {
   const committeeStats = useMemo(() => {
     return {
       total: committees.length,
-      totalMembers: new Set(committees.flatMap(c => (c.members || []).map((m: any) => m.name))).size,
+      totalMembers: new Set(committees.flatMap(c => (c.members || []).map(m => m.name))).size,
     };
   }, [committees]);
 
@@ -148,7 +148,7 @@ const DGExecutiveReport = () => {
   }, [departments, profiles, projects]);
 
   const KpiCard = ({ icon: Icon, label, value, sub, color }: {
-    icon: any; label: string; value: string | number; sub?: string; color?: string;
+    icon: LucideIcon; label: string; value: string | number; sub?: string; color?: string;
   }) => (
     <Card className="shadow-[var(--shadow-card)] border-0">
       <CardContent className="p-4 flex items-start gap-3">
@@ -256,8 +256,8 @@ const DGExecutiveReport = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Projet</TableHead>
-                  <TableHead className="text-[10px]">Chef de projet</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Projet</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Chef de projet</TableHead>
                   <TableHead className="text-[10px] text-center">Missions</TableHead>
                   <TableHead className="text-[10px] text-center">Tâches</TableHead>
                   <TableHead className="text-[10px] text-center">Avancement</TableHead>
@@ -340,11 +340,11 @@ const DGExecutiveReport = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-[10px]">Projet</TableHead>
-                    <TableHead className="text-[10px]">Collaborateur</TableHead>
-                    <TableHead className="text-[10px]">Mission</TableHead>
-                    <TableHead className="text-[10px]">Tâche</TableHead>
-                    <TableHead className="text-[10px]">Deadline</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Projet</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Mission</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Tâche</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Deadline</TableHead>
                     <TableHead className="text-[10px] text-right">Retard</TableHead>
                   </TableRow>
                 </TableHeader>

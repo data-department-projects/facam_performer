@@ -65,6 +65,7 @@ export interface Project {
   collaborators: ProjectCollaborator[];
   color: string;
   milestones: ProjectMilestone[];
+  status?: string;
   createdAt?: string; // ISO date string - date de création
   isNew?: boolean; // true until first save, allows free editing
 }

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { preloadAllData } from "@/hooks/useDataPreloader";
 
 export interface ModuleDesignSettings {
@@ -94,7 +95,7 @@ const STORAGE_KEY = "global_design_settings";
 const MODULE_STORAGE_KEY = "module_design_settings";
 
 // Détecte l'ancien thème sombre (fond < 30% de luminosité) pour migrer vers le blanc FACAM
-function isLegacyDarkTheme(data: Record<string, any>): boolean {
+function isLegacyDarkTheme(data: Record<string, unknown>): boolean {
   const bg: string = data?.backgroundColor ?? "";
   const parts = bg.trim().split(/\s+/);
   const lightness = parseFloat(parts[2] ?? "100");
@@ -197,7 +198,12 @@ export const GlobalDesignProvider = ({ children }: { children: ReactNode }) => {
       try {
         const rawModules = localStorage.getItem(MODULE_STORAGE_KEY);
         if (rawModules) {
-          setModuleSettings(JSON.parse(rawModules));
+          const parsed = JSON.parse(rawModules) as Record<string, Record<string, unknown>>;
+          const migrated: Record<string, ModuleDesignSettings> = {};
+          Object.entries(parsed).forEach(([key, val]) => {
+            if (!isLegacyDarkTheme(val)) migrated[key] = val as ModuleDesignSettings;
+          });
+          setModuleSettings(migrated);
         }
       } catch {}
 
@@ -205,13 +211,13 @@ export const GlobalDesignProvider = ({ children }: { children: ReactNode }) => {
       const cached = await preloadAllData();
 
       if (cached.globalDesign) {
-        const rawData = cached.globalDesign as Record<string, any>;
+        const rawData = cached.globalDesign as Record<string, unknown>;
         if (isLegacyDarkTheme(rawData)) {
           // Migration DB : remplacer l'ancien thème sombre par le blanc FACAM
           setSettings(DEFAULT_GLOBAL_DESIGN);
           applyDesignToDOM(DEFAULT_GLOBAL_DESIGN);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_GLOBAL_DESIGN));
-          supabase.from("app_organization").upsert({ id: "global_design", data: DEFAULT_GLOBAL_DESIGN as any }).then();
+          supabase.from("app_organization").upsert({ id: "global_design", data: DEFAULT_GLOBAL_DESIGN as unknown as Json }).then();
         } else {
           const merged = { ...DEFAULT_GLOBAL_DESIGN, ...rawData };
           setSettings(merged);
@@ -221,9 +227,22 @@ export const GlobalDesignProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (cached.moduleDesigns) {
-        const parsed = cached.moduleDesigns as Record<string, any>;
-        setModuleSettings(parsed);
-        localStorage.setItem(MODULE_STORAGE_KEY, JSON.stringify(parsed));
+        const rawModules = cached.moduleDesigns as Record<string, Record<string, unknown>>;
+        let changed = false;
+        const migrated: Record<string, ModuleDesignSettings> = {};
+        Object.entries(rawModules).forEach(([key, val]) => {
+          if (isLegacyDarkTheme(val)) {
+            changed = true;
+            // module sombre supprimé — retombe sur le thème global blanc
+          } else {
+            migrated[key] = val as ModuleDesignSettings;
+          }
+        });
+        setModuleSettings(migrated);
+        localStorage.setItem(MODULE_STORAGE_KEY, JSON.stringify(migrated));
+        if (changed) {
+          supabase.from("app_organization").upsert({ id: "module_designs", data: migrated as unknown as Json }).then();
+        }
       }
     };
     load();
@@ -233,7 +252,7 @@ export const GlobalDesignProvider = ({ children }: { children: ReactNode }) => {
     setSettings(s);
     applyDesignToDOM(s);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-    supabase.from("app_organization").upsert({ id: "global_design", data: s as any }).then();
+    supabase.from("app_organization").upsert({ id: "global_design", data: s as unknown as Json }).then();
   }, []);
 
   const getModuleSettings = useCallback((moduleId: string): ModuleDesignSettings => {
@@ -249,7 +268,7 @@ export const GlobalDesignProvider = ({ children }: { children: ReactNode }) => {
     const updated = { ...moduleSettings, [moduleId]: s };
     setModuleSettings(updated);
     localStorage.setItem(MODULE_STORAGE_KEY, JSON.stringify(updated));
-    supabase.from("app_organization").upsert({ id: "module_designs", data: updated as any }).then();
+    supabase.from("app_organization").upsert({ id: "module_designs", data: updated as unknown as Json }).then();
   }, [moduleSettings, updateSettings]);
 
   const applyModuleDesign = useCallback((moduleId: string) => {

@@ -1,0 +1,49 @@
+version: 2
+
+updates:
+  # ── Dépendances npm ────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Africa/Douala
+    open-pull-requests-limit: 15
+    labels:
+      - dependencies
+      - automated
+    groups:
+      # Regrouper toutes les mises à jour Radix UI en 1 PR
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      # Regrouper les outils de test
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "vitest"
+          - "@vitest/*"
+      # Regrouper les types TypeScript
+      typescript-types:
+        patterns:
+          - "@types/*"
+    ignore:
+      # Ignorer les mises à jour de patch (trop fréquentes)
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-patch
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+
+  # ── GitHub Actions ──────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "chore(ci)"

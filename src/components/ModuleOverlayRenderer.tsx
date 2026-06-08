@@ -18,7 +18,7 @@ const ModuleOverlayRenderer = ({ moduleId }: { moduleId: string }) => {
         .eq("id", `module_overlay_${moduleId}`)
         .maybeSingle();
       if (data?.data) {
-        const parsed = data.data as any;
+        const parsed = data.data as unknown as ModuleOverlay;
         if (parsed.customTexts?.length || parsed.customImages?.length) {
           setOverlay(parsed);
         } else {

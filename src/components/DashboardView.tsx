@@ -38,7 +38,7 @@ const DashboardView = () => {
   // Salary data + expenses for cost dashboard
   const [salaryMap, setSalaryMap] = useState<Record<string, number | null>>({});
   const [expensesByProject, setExpensesByProject] = useState<Record<string, number>>({});
-  const [expenseDetails, setExpenseDetails] = useState<any[]>([]);
+  const [expenseDetails, setExpenseDetails] = useState<{ project_id: string; description: string | null; amount: number | null; expense_date: string | null; created_by: string | null }[]>([]);
   const [costDetailProject, setCostDetailProject] = useState<string | null>(null);
 
   const hasCostAccess = isAdmin || allowedModules.includes("project_costs") || allowedModules.includes("weekly_analysis");
@@ -47,18 +47,18 @@ const DashboardView = () => {
     if (!hasCostAccess) return;
     const load = async () => {
       const [salaryRes, expenseRes, expenseDetailRes] = await Promise.all([
-        supabase.from("profiles").select("full_name, salary") as any,
+        supabase.from("profiles").select("full_name, salary"),
         supabase.from("project_expenses").select("project_id, amount"),
         supabase.from("project_expenses").select("project_id, description, amount, expense_date, created_by"),
       ]);
       if (salaryRes.data) {
         const map: Record<string, number | null> = {};
-        (salaryRes.data as any[]).forEach((p: any) => { map[p.full_name] = p.salary ?? null; });
+        salaryRes.data.forEach((p) => { map[p.full_name] = p.salary ?? null; });
         setSalaryMap(map);
       }
       if (expenseRes.data) {
         const map: Record<string, number> = {};
-        (expenseRes.data as any[]).forEach((e: any) => {
+        expenseRes.data.forEach((e) => {
           map[e.project_id] = (map[e.project_id] || 0) + (e.amount || 0);
         });
         setExpensesByProject(map);
@@ -68,7 +68,7 @@ const DashboardView = () => {
       }
     };
     load();
-  }, [isAdmin]);
+  }, [isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Department stats ──
   const totalToday = departments.reduce((a, d) => a + d.compositionToday.length, 0);
@@ -461,7 +461,7 @@ const DashboardView = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-[10px]">Projet</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Projet</TableHead>
                       <TableHead className="text-[10px] text-right">Heures</TableHead>
                       <TableHead className="text-[10px] text-right">Coût humain</TableHead>
                       <TableHead className="text-[10px] text-right">Dépenses</TableHead>
@@ -524,7 +524,7 @@ const DashboardView = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-[10px]">Collaborateur</TableHead>
+                            <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
                             <TableHead className="text-[10px] text-right">Heures</TableHead>
                             <TableHead className="text-[10px] text-right">Taux horaire</TableHead>
                             <TableHead className="text-[10px] text-right">Coût</TableHead>
@@ -611,8 +611,8 @@ const DashboardView = () => {
 
           // Expense details for this project
           const projExpenseDetails = expenseDetails
-            .filter((e: any) => e.project_id === proj.id)
-            .map((e: any) => ({
+            .filter((e) => e.project_id === proj.id)
+            .map((e) => ({
               description: e.description,
               amount: e.amount,
               date: e.expense_date,

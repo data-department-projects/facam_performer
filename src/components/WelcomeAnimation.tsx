@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logoImg from "@/assets/facam-performer-logo.png";
+const logoImg = "/facam_stairway-bleu.png";
 
 interface WelcomeAnimationProps {
   onComplete: () => void;

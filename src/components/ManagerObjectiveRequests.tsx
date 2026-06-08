@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { logObjectiveChangeAudit } from "@/hooks/useObjectiveAuditLog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CheckCircle2, XCircle, Clock, FileText, Trash2, Pencil, Send, ArrowRight, Filter } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, FileText, Trash2, Pencil, Send, ArrowRight, Filter, type LucideIcon } from "lucide-react";
 import { OBJECTIVE_CATEGORIES } from "@/hooks/useObjectives";
 
 interface ObjectiveChangeRequest {
@@ -87,7 +87,7 @@ const ManagerObjectiveRequests = () => {
 
   useEffect(() => {
     if (profiles.length > 0) fetchRequests();
-  }, [user, profiles]);
+  }, [user, profiles]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getProfileName = (userId: string) =>
     profiles.find(p => p.user_id === userId)?.full_name || "—";
@@ -127,7 +127,7 @@ const ManagerObjectiveRequests = () => {
     const comment = comments[group.key] || "";
 
     for (const req of group.reqs) {
-      const updatePayload: any = {
+      const updatePayload: Record<string, unknown> = {
         manager_status: status,
         manager_reviewed_by: user.id,
         manager_reviewed_at: new Date().toISOString(),
@@ -152,13 +152,13 @@ const ManagerObjectiveRequests = () => {
         if (req.request_type === "deletion") {
           await supabase.from("objectives").delete().eq("id", req.objective_id);
         } else if (req.request_type === "modification" && req.field_name && req.new_value !== null) {
-          await supabase.from("objectives").update({ [req.field_name]: req.new_value } as any).eq("id", req.objective_id);
+          await supabase.from("objectives").update({ [req.field_name]: req.new_value } as import("@/integrations/supabase/types").Database["public"]["Tables"]["objectives"]["Update"]).eq("id", req.objective_id);
         }
       }
 
       await supabase
         .from("objective_change_requests")
-        .update(updatePayload)
+        .update(updatePayload as import("@/integrations/supabase/types").Database["public"]["Tables"]["objective_change_requests"]["Update"])
         .eq("id", req.id);
 
       await logObjectiveChangeAudit({
@@ -178,10 +178,10 @@ const ManagerObjectiveRequests = () => {
     const firstReq = group.reqs[0];
     if (status === "rejected") {
       // Rejected: restore to validated
-      await supabase.from("objectives").update({ status: "validated" } as any).eq("id", firstReq.objective_id);
+      await supabase.from("objectives").update({ status: "validated" }).eq("id", firstReq.objective_id);
     } else if (isAdmin && status === "approved") {
       // DG approved & applied changes: restore to validated
-      await supabase.from("objectives").update({ status: "validated" } as any).eq("id", firstReq.objective_id);
+      await supabase.from("objectives").update({ status: "validated" }).eq("id", firstReq.objective_id);
     }
     // If non-admin manager approved, keep pending_validation until DG decides
 
@@ -201,7 +201,7 @@ const ManagerObjectiveRequests = () => {
     fetchRequests();
   };
 
-  const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
+  const statusConfig: Record<string, { label: string; icon: LucideIcon; color: string }> = {
     pending: { label: "En attente", icon: Clock, color: "bg-amber-100 text-amber-800" },
     approved: { label: isAdmin ? "Approuvée & Appliquée" : "Approuvée (transmise au DG)", icon: isAdmin ? CheckCircle2 : Send, color: isAdmin ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800" },
     rejected: { label: "Refusée", icon: XCircle, color: "bg-red-100 text-red-800" },
@@ -231,7 +231,7 @@ const ManagerObjectiveRequests = () => {
       const ds = getGroupDisplayStatus(g);
       return ds === statusFilter;
     });
-  }, [groupedRequests, statusFilter]);
+  }, [groupedRequests, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const FILTER_TABS: { value: "all" | "pending" | "approved" | "rejected"; label: string }[] = [
     { value: "all", label: "Toutes" },
@@ -241,7 +241,7 @@ const ManagerObjectiveRequests = () => {
   ];
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="shadow-card">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <FileText className="w-4 h-4 text-primary" />

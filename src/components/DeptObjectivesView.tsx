@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Target, Plus, CheckCircle2, Pencil, Trash2, ChevronRight, ChevronDown, Award, ClipboardCheck, Play, Building2, BarChart3, Calendar, TrendingUp, Trophy, Coins } from "lucide-react";
+import { Target, Plus, CheckCircle2, Pencil, Trash2, ChevronRight, ChevronDown, Award, ClipboardCheck, Play, Building2, BarChart3, Calendar, TrendingUp, Trophy, Coins, type LucideIcon } from "lucide-react";
 import ObjectiveFormDialog from "./ObjectiveFormDialog";
 import ObjectiveEvalDialog from "./ObjectiveEvalDialog";
 import DeptObjectiveKpisDialog from "./DeptObjectiveKpisDialog";
@@ -19,7 +19,7 @@ import DeptObjectiveInlineKpis from "./DeptObjectiveInlineKpis";
 const getCategoryLabel = (v: string) => OBJECTIVE_CATEGORIES.find(c => c.value === v)?.label || v;
 
 // --- Stat Card Sub-component ---
-const StatCard = ({ icon: Icon, value, label, colorClass }: { icon: any; value: string | number; label: string; colorClass: string }) => (
+const StatCard = ({ icon: Icon, value, label, colorClass }: { icon: LucideIcon; value: string | number; label: string; colorClass: string }) => (
   <Card className="overflow-hidden border-0 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow duration-300">
     <CardContent className="p-0">
       <div className="flex items-center gap-3 p-4">
@@ -213,18 +213,18 @@ const DeptObjectivesView = () => {
 
   const handleCreate = (data: Partial<Objective>) => {
     if (!selectedDeptId) return;
-    create({ ...data, department_id: selectedDeptId } as any);
+    create({ ...data, department_id: selectedDeptId });
     setShowForm(false);
   };
 
   const handleEdit = (data: Partial<Objective>) => {
     if (!editingObj) return;
-    update(editingObj.id, data as any);
+    update(editingObj.id, data);
     setEditingObj(null);
   };
 
   const handleEvalSave = (id: string, updates: Partial<Objective>) => {
-    update(id, updates as any);
+    update(id, updates);
     setEvalObj(null);
   };
 
@@ -320,7 +320,7 @@ const DeptObjectivesView = () => {
                     {isAdmin && objs.length > 0 && (
                       <div className="flex items-center gap-2 flex-wrap">
                         {hasDraftOrPend && (
-                          <Button size="sm" className="h-7 text-xs gap-1.5 rounded-lg" onClick={() => bulkUpdateStatus(dept.id, ["draft", "pending_validation"], "validated", { validated_by: user?.id, validated_at: new Date().toISOString() } as any)}>
+                          <Button size="sm" className="h-7 text-xs gap-1.5 rounded-lg" onClick={() => bulkUpdateStatus(dept.id, ["draft", "pending_validation"], "validated", { validated_by: user?.id, validated_at: new Date().toISOString() } as Partial<DeptObjective>)}>
                             <CheckCircle2 className="w-3.5 h-3.5" /> Valider tout
                           </Button>
                         )}

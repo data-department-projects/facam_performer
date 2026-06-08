@@ -45,7 +45,7 @@ const HRPerformanceView = () => {
     const fetchBudgets = async () => {
       if (!canManage) return;
       if (isAdmin) {
-        const { data } = await supabase.from("profiles").select("user_id, manager_bonus_budget").eq("is_manager", true) as any;
+        const { data } = (await supabase.from("profiles").select("user_id, manager_bonus_budget").eq("is_manager", true)) as unknown as { data: Array<{ user_id: string; manager_bonus_budget: number | null }> | null };
         if (data) {
           const map: Record<string, number> = {};
           for (const row of data) map[row.user_id] = row.manager_bonus_budget || 0;
@@ -53,7 +53,7 @@ const HRPerformanceView = () => {
         }
       } else if (isManager && user) {
         // Manager can only see own budget (own-row policy)
-        const { data } = await supabase.from("profiles").select("user_id, manager_bonus_budget").eq("user_id", user.id).single() as any;
+        const { data } = (await supabase.from("profiles").select("user_id, manager_bonus_budget").eq("user_id", user.id).single()) as unknown as { data: { user_id: string; manager_bonus_budget: number | null } | null };
         if (data) setManagerBudgets({ [data.user_id]: data.manager_bonus_budget || 0 });
       }
     };
@@ -80,7 +80,7 @@ const HRPerformanceView = () => {
   // Manager's own objectives hook (always called, but only used for managers)
   const ownHook = useObjectives(isManager ? user?.id : undefined, selectedYear);
 
-  const objectives = viewUserId ? userHook.objectives : [];
+  const objectives = useMemo(() => viewUserId ? userHook.objectives : [], [viewUserId, userHook.objectives]);
   const { createObjective, updateObjective, deleteObjective, submitForValidation, validateObjectives, startS1Review, startS2Evaluation, completeEvaluation } = userHook;
 
   // Filter allHook objectives to only subordinates for managers
@@ -183,8 +183,8 @@ const HRPerformanceView = () => {
     return { hasDraftOrPend, hasVal, hasS1r, hasS2e };
   };
 
-  const handleBulkAction = async (userId: string, fromStatuses: ObjectiveStatus[], toStatus: ObjectiveStatus, extra?: Record<string, any>) => {
-    const updates: any = { status: toStatus, ...extra };
+  const handleBulkAction = async (userId: string, fromStatuses: ObjectiveStatus[], toStatus: ObjectiveStatus, extra?: Record<string, unknown>) => {
+    const updates: Record<string, unknown> = { status: toStatus, ...extra };
     const { error } = await supabase
       .from("objectives")
       .update(updates)
@@ -202,7 +202,7 @@ const HRPerformanceView = () => {
     const numValue = parseFloat(value) || 0;
     const { error } = await supabase
       .from("profiles")
-      .update({ manager_bonus_budget: numValue } as any)
+      .update({ manager_bonus_budget: numValue } as unknown as Record<string, unknown>)
       .eq("user_id", managerId);
     if (!error) {
       toast.success("Budget bonus mis à jour");
@@ -218,9 +218,9 @@ const HRPerformanceView = () => {
   const renderBudgetAllocation = () => {
     if (!isAdmin) return null;
     return (
-      <Card className="border-0 shadow-sm">
+      <Card className="shadow-card">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="text-sm font-display flex items-center gap-2">
             <Wallet className="w-4 h-4 text-primary" /> Budget Bonus par Manager — {selectedYear}
           </CardTitle>
         </CardHeader>
@@ -228,11 +228,11 @@ const HRPerformanceView = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[10px]">Manager</TableHead>
-                <TableHead className="text-[10px] text-center">Collaborateurs</TableHead>
-                <TableHead className="text-[10px] text-center">Budget alloué (F CFA)</TableHead>
-                <TableHead className="text-[10px] text-center">Bonus distribué</TableHead>
-                <TableHead className="text-[10px] text-right">Action</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Manager</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Collaborateurs</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Budget alloué (F CFA)</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Bonus distribué</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -296,7 +296,7 @@ const HRPerformanceView = () => {
     const remaining = budget - totalDistributed;
 
     return (
-      <Card className="border-0 shadow-sm bg-primary/5">
+      <Card className="shadow-card bg-primary/5">
         <CardContent className="p-4">
           <div className="flex items-center gap-6 flex-wrap">
             <div className="flex items-center gap-2">
@@ -330,10 +330,10 @@ const HRPerformanceView = () => {
     const canDeleteOwn = (obj: Objective) => obj.user_id === user.id && (obj.status === "draft" || obj.status === "pending_validation");
 
     return (
-      <Card className="border-0 shadow-sm">
+      <Card className="shadow-card">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="text-sm font-display flex items-center gap-2">
               <Target className="w-4 h-4 text-primary" /> Mes objectifs personnels — {selectedYear}
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -361,13 +361,13 @@ const HRPerformanceView = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Objectif</TableHead>
-                  <TableHead className="text-[10px]">Catégorie</TableHead>
-                  <TableHead className="text-[10px]">Statut</TableHead>
-                  <TableHead className="text-[10px] text-center">S1</TableHead>
-                  <TableHead className="text-[10px] text-center">S2</TableHead>
-                  <TableHead className="text-[10px] text-center">Atteinte</TableHead>
-                  <TableHead className="text-[10px] text-right">Actions</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Objectif</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Catégorie</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Statut</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">S1</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">S2</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Atteinte</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -434,7 +434,7 @@ const HRPerformanceView = () => {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="text-sm font-display flex items-center gap-2">
             <Users2 className="w-4 h-4" /> {isAdmin ? "Tous les collaborateurs" : "Mes collaborateurs"} — {selectedYear}
           </CardTitle>
         </CardHeader>
@@ -447,13 +447,13 @@ const HRPerformanceView = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Collaborateur</TableHead>
-                  <TableHead className="text-[10px] text-center">Objectifs</TableHead>
-                  <TableHead className="text-[10px] text-center">Statut</TableHead>
-                  <TableHead className="text-[10px] text-center">Atteinte</TableHead>
-                  {canManage && <TableHead className="text-[10px] text-center">Bonus total</TableHead>}
-                  <TableHead className="text-[10px]">Actions workflow</TableHead>
-                  <TableHead className="text-[10px] text-right">Détail</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Objectifs</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Statut</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Atteinte</TableHead>
+                  {canManage && <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Bonus total</TableHead>}
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Actions workflow</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Détail</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -656,13 +656,13 @@ const HRPerformanceView = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Objectif</TableHead>
-                  <TableHead className="text-[10px]">Catégorie</TableHead>
-                  {canManage && <TableHead className="text-[10px] text-center">Bonus</TableHead>}
-                  <TableHead className="text-[10px]">Statut</TableHead>
-                  <TableHead className="text-[10px] text-center">S1</TableHead>
-                  <TableHead className="text-[10px] text-center">S2</TableHead>
-                  <TableHead className="text-[10px] text-right">Actions</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Objectif</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Catégorie</TableHead>
+                  {canManage && <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">Bonus</TableHead>}
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Statut</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">S1</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-center">S2</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -718,7 +718,7 @@ const HRPerformanceView = () => {
                           <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-primary" title="Valider" onClick={async () => {
                             const { error } = await supabase
                               .from("objectives")
-                              .update({ status: "validated", validated_by: user!.id, validated_at: new Date().toISOString() } as any)
+                              .update({ status: "validated", validated_by: user!.id, validated_at: new Date().toISOString() } as unknown as Record<string, unknown>)
                               .eq("id", obj.id);
                             if (!error) {
                               toast.success("Objectif validé");
@@ -733,7 +733,7 @@ const HRPerformanceView = () => {
                           <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1" title="Lancer Revue S1" onClick={async () => {
                             const { error } = await supabase
                               .from("objectives")
-                              .update({ status: "s1_review" } as any)
+                              .update({ status: "s1_review" } as unknown as Record<string, unknown>)
                               .eq("id", obj.id);
                             if (!error) {
                               toast.success("Revue S1 lancée");
@@ -752,7 +752,7 @@ const HRPerformanceView = () => {
                             <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1" title="Lancer Éval. S2" onClick={async () => {
                               const { error } = await supabase
                                 .from("objectives")
-                                .update({ status: "s2_evaluation" } as any)
+                                .update({ status: "s2_evaluation" } as unknown as Record<string, unknown>)
                                 .eq("id", obj.id);
                               if (!error) {
                                 toast.success("Évaluation S2 lancée");
@@ -772,7 +772,7 @@ const HRPerformanceView = () => {
                             <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-green-600" title="Finaliser" onClick={async () => {
                               const { error } = await supabase
                                 .from("objectives")
-                                .update({ status: "completed" } as any)
+                                .update({ status: "completed" } as unknown as Record<string, unknown>)
                                 .eq("id", obj.id);
                               if (!error) {
                                 toast.success("Objectif finalisé");

@@ -42,7 +42,7 @@ const AdminTimeAnalytics = () => {
 
   useEffect(() => {
     const fetchExemptions = async () => {
-      const { data } = await supabase.from("time_entry_exemptions" as any).select("id, user_id, reason");
+      const { data } = await supabase.from("time_entry_exemptions" as unknown as never).select("id, user_id, reason");
       if (data) setExemptions(data as unknown as ExemptionRow[]);
     };
     fetchExemptions();
@@ -98,8 +98,8 @@ const AdminTimeAnalytics = () => {
 
   // Names of profiles that have skip_personal_planning enabled (e.g. DG)
   const skipPlanningNames = useMemo(() => {
-    return new Set(profiles.filter(p => (p as any).skip_personal_planning).map(p => p.full_name));
-  }, [profiles]);
+    return new Set(allProfiles.filter(p => (p as unknown as { skip_personal_planning?: boolean }).skip_personal_planning).map(p => p.full_name));
+  }, [allProfiles]);
 
   const allCollaboratorNames = useMemo(() => {
     const names = new Set<string>();
@@ -128,13 +128,13 @@ const AdminTimeAnalytics = () => {
   // === Exemption management ===
   const addExemption = async () => {
     if (!newExemptUserId || !user) return;
-    const { error } = await supabase.from("time_entry_exemptions" as any).insert({
+    const { error } = await supabase.from("time_entry_exemptions" as unknown as never).insert({
       user_id: newExemptUserId,
       reason: newExemptReason,
       granted_by: user.id,
     });
     if (!error) {
-      const { data } = await supabase.from("time_entry_exemptions" as any).select("id, user_id, reason");
+      const { data } = await supabase.from("time_entry_exemptions" as unknown as never).select("id, user_id, reason");
       if (data) setExemptions(data as unknown as ExemptionRow[]);
       setNewExemptUserId("");
       setNewExemptReason("");
@@ -142,7 +142,7 @@ const AdminTimeAnalytics = () => {
   };
 
   const removeExemption = async (id: string) => {
-    await supabase.from("time_entry_exemptions" as any).delete().eq("id", id);
+    await supabase.from("time_entry_exemptions" as unknown as never).delete().eq("id", id);
     setExemptions(prev => prev.filter(e => e.id !== id));
   };
 
@@ -198,8 +198,8 @@ const AdminTimeAnalytics = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Collaborateur</TableHead>
-                  <TableHead className="text-[10px]">Jours manquants</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Jours manquants</TableHead>
                   <TableHead className="text-[10px] text-right">Statut</TableHead>
                 </TableRow>
               </TableHeader>
@@ -269,7 +269,7 @@ const AdminTimeAnalytics = () => {
           const dow = getDay(day); // 0=Sun
           if (i === 0) {
             // Pad initial week
-            for (let p = 0; p < dow; p++) currentWeek.push(null as any);
+            for (let p = 0; p < dow; p++) currentWeek.push(null as unknown as Date);
           }
           currentWeek.push(day);
           if (dow === 6 || i === allDays.length - 1) {
@@ -403,7 +403,7 @@ const AdminTimeAnalytics = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[10px]">Collaborateur</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
                 <TableHead className="text-[10px] text-right">Saisies</TableHead>
                 <TableHead className="text-[10px] text-right">Jours</TableHead>
                 <TableHead className="text-[10px] text-right">Heures totales</TableHead>
@@ -444,9 +444,9 @@ const AdminTimeAnalytics = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Date</TableHead>
-                  <TableHead className="text-[10px]">Projet</TableHead>
-                  <TableHead className="text-[10px]">Collaborateur</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Date</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Projet</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
                   <TableHead className="text-[10px] text-right">Début</TableHead>
                   <TableHead className="text-[10px] text-right">Fin</TableHead>
                   <TableHead className="text-[10px] text-right">Heures</TableHead>

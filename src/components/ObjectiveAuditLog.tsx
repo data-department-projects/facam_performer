@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ScrollText, CheckCircle2, XCircle, Send, FileEdit } from "lucide-react";
+import { ScrollText, CheckCircle2, XCircle, Send, FileEdit, type LucideIcon } from "lucide-react";
 
 interface AuditEntry {
   id: string;
@@ -16,11 +16,11 @@ interface AuditEntry {
   action: string;
   actor_id: string;
   actor_role: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
 }
 
-const ACTION_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+const ACTION_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   request_created: { label: "Demande créée", icon: FileEdit, color: "bg-blue-100 text-blue-800" },
   manager_approved: { label: "Approuvée (Manager)", icon: Send, color: "bg-indigo-100 text-indigo-800" },
   manager_rejected: { label: "Refusée (Manager)", icon: XCircle, color: "bg-red-100 text-red-800" },
@@ -50,7 +50,7 @@ const ObjectiveAuditLog = () => {
   const getName = (id: string) => profiles.find(p => p.user_id === id)?.full_name || "—";
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="shadow-card">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <ScrollText className="w-4 h-4 text-primary" />
@@ -67,12 +67,12 @@ const ObjectiveAuditLog = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Date</TableHead>
-                  <TableHead className="text-[10px]">Action</TableHead>
-                  <TableHead className="text-[10px]">Collaborateur</TableHead>
-                  <TableHead className="text-[10px]">Acteur</TableHead>
-                  <TableHead className="text-[10px]">Rôle</TableHead>
-                  <TableHead className="text-[10px]">Détails</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Date</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Action</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Acteur</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Rôle</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Détails</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
