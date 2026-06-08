@@ -32,7 +32,7 @@ jobs:
           cache: npm
 
       - name: Installation des dépendances
-        run: npm ci
+        run: npm install
 
       - name: Vérification TypeScript (tsc --noEmit)
         run: npx tsc --noEmit
@@ -57,7 +57,7 @@ jobs:
           cache: npm
 
       - name: Installation des dépendances
-        run: npm ci
+        run: npm install
 
       - name: Exécution des tests avec couverture
         run: npm run test:coverage
@@ -97,7 +97,7 @@ jobs:
           cache: npm
 
       - name: Installation des dépendances
-        run: npm ci
+        run: npm install
 
       - name: Build de production
         run: npm run build
