@@ -13,7 +13,8 @@
       "Read(//c/c/Users/BK/Documents/FACAM PROJETS/FACAM PERFORMER/src/**)",
       "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\BK\\\\Documents\\\\FACAM PROJETS\\\\FACAM PERFORMER\\\\src\" -ErrorAction SilentlyContinue)",
       "Bash(grep -v \"//.*any\")",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(node -e \"const l = require\\('./package-lock.json'\\); console.log\\('lockfileVersion:', l.lockfileVersion\\); console.log\\('esbuild in packages:', !!l.packages['node_modules/esbuild']\\); console.log\\('emnapi in packages:', !!l.packages['node_modules/@emnapi/core']\\);\")"
     ]
   }
 }
