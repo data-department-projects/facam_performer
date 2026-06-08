@@ -64,7 +64,7 @@ const ObjectiveChangeRequestDialog = ({ open, onOpenChange, objective, onSuccess
       } else {
         next.add(field);
         // Pre-fill with current value
-        setNewValues(v => ({ ...v, [field]: String((objective as any)[field] || "") }));
+        setNewValues(v => ({ ...v, [field]: String((objective as unknown as Record<string, unknown>)[field] || "") }));
       }
       return next;
     });
@@ -78,7 +78,7 @@ const ObjectiveChangeRequestDialog = ({ open, onOpenChange, objective, onSuccess
     setStep(2);
   };
 
-  const getOldValue = (field: string) => String((objective as any)[field] || "");
+  const getOldValue = (field: string) => String((objective as unknown as Record<string, unknown>)[field] || "");
 
   const getDisplayValue = (field: string, value: string) => {
     if (field === "category") return getCategoryLabel(value);
@@ -115,14 +115,14 @@ const ObjectiveChangeRequestDialog = ({ open, onOpenChange, objective, onSuccess
 
     const { data, error } = await supabase
       .from("objective_change_requests")
-      .insert(requests as any)
+      .insert(requests as import("@/integrations/supabase/types").Database["public"]["Tables"]["objective_change_requests"]["Insert"][])
       .select();
 
     // Update objective status to "pending_validation" (En traitement)
     if (!error) {
       await supabase
         .from("objectives")
-        .update({ status: "pending_validation" } as any)
+        .update({ status: "pending_validation" })
         .eq("id", objective.id);
     }
 
@@ -131,7 +131,7 @@ const ObjectiveChangeRequestDialog = ({ open, onOpenChange, objective, onSuccess
       console.error(error);
     } else if (data) {
       // Audit log for each
-      for (const row of data as any[]) {
+      for (const row of data as import("@/integrations/supabase/types").Database["public"]["Tables"]["objective_change_requests"]["Row"][]) {
         await logObjectiveChangeAudit({
           change_request_id: row.id,
           objective_id: objective.id,

@@ -50,7 +50,7 @@ const ProductionTeamSchedule = () => {
       .eq("week_start", weekStart);
 
     if (!error && data) {
-      setSchedules(data.map((d: any) => ({
+      setSchedules(data.map((d: Record<string, unknown>) => ({
         id: d.id,
         manager_id: d.manager_id,
         week_start: d.week_start,
@@ -110,7 +110,7 @@ const ProductionTeamSchedule = () => {
       for (const schedule of schedules) {
         if (schedule.id) {
           await supabase.from("team_work_schedules")
-            .update({ work_days: schedule.work_days, notes: schedule.notes, updated_at: new Date().toISOString() } as any)
+            .update({ work_days: schedule.work_days, notes: schedule.notes, updated_at: new Date().toISOString() } as unknown as Record<string, unknown>)
             .eq("id", schedule.id);
         } else {
           const { data } = await supabase.from("team_work_schedules")
@@ -120,10 +120,10 @@ const ProductionTeamSchedule = () => {
               team_name: schedule.team_name,
               work_days: schedule.work_days,
               notes: schedule.notes,
-            } as any)
+            } as unknown as Record<string, unknown>)
             .select()
             .single();
-          if (data) schedule.id = (data as any).id;
+          if (data) schedule.id = (data as unknown as { id: string }).id;
         }
       }
       toast({ title: "Planning des équipes sauvegardé ✓" });

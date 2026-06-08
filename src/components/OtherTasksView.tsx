@@ -71,8 +71,8 @@ const OtherTasksView = () => {
       setTasks(data as unknown as OtherTask[]);
       // Extract unique custom categories
       const customs = data
-        .filter((t: any) => t.category === "Autres" && t.custom_category)
-        .map((t: any) => t.custom_category as string);
+        .filter((t: OtherTask) => t.category === "Autres" && t.custom_category)
+        .map((t: OtherTask) => t.custom_category as string);
       setCustomCategories((prev) => [...new Set([...prev, ...customs])]);
     }
     setLoading(false);
@@ -171,7 +171,7 @@ const OtherTasksView = () => {
   if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -194,18 +194,21 @@ const OtherTasksView = () => {
 
       {/* Task list */}
       {filteredTasks.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">Aucune tâche pour le moment.</p>
-          <Button variant="outline" size="sm" className="mt-3 text-xs gap-1.5" onClick={openAdd}>
-            <Plus className="w-3.5 h-3.5" /> Ajouter une tâche
-          </Button>
+        <Card className="shadow-card">
+          <div className="flex flex-col items-center gap-2 py-10">
+            <Check className="w-8 h-8 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">Aucune tâche pour le moment.</p>
+            <Button variant="outline" size="sm" className="mt-1 text-xs gap-1.5" onClick={openAdd}>
+              <Plus className="w-3.5 h-3.5" /> Ajouter une tâche
+            </Button>
+          </div>
         </Card>
       ) : (
         <div className="space-y-2">
           {filteredTasks.map((task) => {
             const st = STATUS_CONFIG[task.status] || STATUS_CONFIG.todo;
             return (
-              <Card key={task.id} className="p-3 flex items-start gap-3 group hover:shadow-md transition-shadow">
+              <Card key={task.id} className="shadow-card flex items-start gap-3 p-3 group hover:shadow-elevated transition-shadow">
                 <button
                   onClick={() => handleStatusToggle(task)}
                   className="mt-0.5 shrink-0 rounded-full p-1 hover:bg-muted transition-colors"

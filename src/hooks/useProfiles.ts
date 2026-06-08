@@ -1,63 +1,54 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Profile } from "@/types";
 
-export interface Profile {
-  user_id: string;
-  full_name: string;
-  email: string;
-  department_id: string | null;
-  service: string | null;
-  poste: string | null;
-  is_manager: boolean;
-  hierarchy_user_id: string | null;
-  category: string;
-  badge_number: string | null;
-}
+export type { Profile };
 
+// Cache module-level — partagé entre tous les composants qui utilisent useProfiles
 let cachedProfiles: Profile[] | null = null;
-const listeners: Set<(profiles: Profile[]) => void> = new Set();
-let loading = false;
+const listeners = new Set<(profiles: Profile[]) => void>();
+let isFetching = false;
 
-const fetchAndBroadcast = async () => {
-  if (loading) return;
-  
-  // Wait for auth session before fetching
+const fetchAndBroadcast = async (): Promise<void> => {
+  if (isFetching) return;
+
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    // Not authenticated yet, don't fetch (would return empty due to RLS)
-    return;
-  }
-  
-  loading = true;
-  const { data } = await supabase.from("profiles_public" as any).select("user_id, full_name, email, department_id, service, poste, is_manager, hierarchy_user_id, category, badge_number") as { data: Profile[] | null };
-  cachedProfiles = (data ?? []).filter((p: Profile) => p.full_name);
-  loading = false;
+  if (!session) return; // RLS bloquerait la requête de toute façon
+
+  isFetching = true;
+
+  const { data } = await supabase
+    // Vue Supabase non incluse dans les types auto-générés
+    .from("profiles_public" as never)
+    .select("user_id, full_name, email, department_id, service, poste, is_manager, hierarchy_user_id, category, badge_number");
+
+  cachedProfiles = ((data ?? []) as unknown as Profile[]).filter(p => p.full_name);
+  isFetching = false;
   listeners.forEach(cb => cb(cachedProfiles!));
 };
 
-export const refreshProfiles = () => {
+export const refreshProfiles = (): void => {
   cachedProfiles = null;
   fetchAndBroadcast();
 };
 
-export const useProfiles = () => {
+export const useProfiles = (): Profile[] => {
   const [profiles, setProfiles] = useState<Profile[]>(cachedProfiles ?? []);
 
   useEffect(() => {
     const handler = (p: Profile[]) => setProfiles(p);
     listeners.add(handler);
 
-    if (!cachedProfiles) {
-      fetchAndBroadcast();
-    } else {
+    if (cachedProfiles) {
       setProfiles(cachedProfiles);
+    } else {
+      fetchAndBroadcast();
     }
 
-    // Also listen for auth changes to refetch when user logs in
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' && !cachedProfiles) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (event === "SIGNED_IN" && !cachedProfiles) {
         fetchAndBroadcast();
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === "SIGNED_OUT") {
         cachedProfiles = null;
         setProfiles([]);
       }

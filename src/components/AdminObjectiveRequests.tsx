@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { logObjectiveChangeAudit } from "@/hooks/useObjectiveAuditLog";
 import { fr } from "date-fns/locale";
-import { CheckCircle2, XCircle, Clock, FileText, Trash2, Pencil, ArrowRight, ShieldAlert } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, FileText, Trash2, Pencil, ArrowRight, ShieldAlert, type LucideIcon } from "lucide-react";
 import { OBJECTIVE_CATEGORIES } from "@/hooks/useObjectives";
 
 interface ObjectiveChangeRequest {
@@ -131,7 +131,7 @@ const AdminObjectiveRequests = () => {
     const isDirect = isDirectSubordinate(group.userId);
 
     for (const req of group.reqs) {
-      const updatePayload: any = {
+      const updatePayload: Record<string, unknown> = {
         status,
         reviewed_by: user.id,
         reviewed_at: new Date().toISOString(),
@@ -148,7 +148,7 @@ const AdminObjectiveRequests = () => {
 
       const { error } = await supabase
         .from("objective_change_requests")
-        .update(updatePayload as any)
+        .update(updatePayload as import("@/integrations/supabase/types").Database["public"]["Tables"]["objective_change_requests"]["Update"])
         .eq("id", req.id);
 
       if (error) {
@@ -161,7 +161,7 @@ const AdminObjectiveRequests = () => {
         if (req.request_type === "deletion") {
           await supabase.from("objectives").delete().eq("id", req.objective_id);
         } else if (req.request_type === "modification" && req.field_name && req.new_value !== null) {
-          await supabase.from("objectives").update({ [req.field_name]: req.new_value } as any).eq("id", req.objective_id);
+          await supabase.from("objectives").update({ [req.field_name]: req.new_value } as import("@/integrations/supabase/types").Database["public"]["Tables"]["objectives"]["Update"]).eq("id", req.objective_id);
         }
       }
 
@@ -178,7 +178,7 @@ const AdminObjectiveRequests = () => {
 
     // Restore objective status to "validated" after DG review
     const firstReq = group.reqs[0];
-    await supabase.from("objectives").update({ status: "validated" } as any).eq("id", firstReq.objective_id);
+    await supabase.from("objectives").update({ status: "validated" }).eq("id", firstReq.objective_id);
 
     toast({
       title: status === "approved" ? "Demande approuvée ✓" : "Demande refusée",
@@ -187,7 +187,7 @@ const AdminObjectiveRequests = () => {
     fetchRequests();
   };
 
-  const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
+  const statusConfig: Record<string, { label: string; icon: LucideIcon; color: string }> = {
     pending: { label: "En attente", icon: Clock, color: "bg-amber-100 text-amber-800" },
     approved: { label: "Approuvée", icon: CheckCircle2, color: "bg-green-100 text-green-800" },
     rejected: { label: "Refusée", icon: XCircle, color: "bg-red-100 text-red-800" },

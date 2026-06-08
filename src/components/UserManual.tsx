@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   BarChart3, Network, GanttChart, FolderKanban,
   Clock, Target, Building2, BookOpen, ArrowRight, CheckCircle2,
-  AlertCircle, Users, FileText, CalendarDays, Settings
+  AlertCircle, Users, FileText, CalendarDays, Settings, type LucideIcon
 } from "lucide-react";
 
 interface ManualSection {
   id: string;
   title: string;
-  icon: any;
+  icon: LucideIcon;
   badge?: string;
   managerOnly?: boolean;
   adminOnly?: boolean;

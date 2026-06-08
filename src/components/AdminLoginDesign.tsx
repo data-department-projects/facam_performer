@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { Palette, Save, RotateCcw, Eye, EyeOff, Mail, Lock, Sparkles, Type, Image, Upload, Plus, Trash2, Move, ChevronDown, ChevronUp, GripVertical, MousePointer, Settings2, Maximize2, Minimize2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-const logoImg = "/facam_stairway-bleu.png";
+const STAIRWAY_LOGO = "/facam_stairway-bleu.png";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -391,8 +392,8 @@ const SelectedElementProperties = ({
   const builtIn = builtInMap[selectedEl];
 
   if (builtIn) {
-    const style = (draft as any)[builtIn.styleKey] as TextStyle;
-    const textVal = (draft as any)[builtIn.textKey] as string;
+    const style = draft[builtIn.styleKey as keyof typeof draft] as TextStyle;
+    const textVal = draft[builtIn.textKey as keyof typeof draft] as string;
     const isHidden = (draft.hiddenElements || []).includes(selectedEl);
     const toggleHide = () => {
       setDraft(p => {
@@ -543,7 +544,7 @@ const AdminLoginDesign = () => {
   const persistLoginDesign = async (toSave: LoginDesignSettings) => {
     return supabase.from("app_organization").upsert({
       id: "login_design",
-      data: toSave as any,
+      data: toSave as unknown as Json,
       updated_at: new Date().toISOString(),
     });
   };
@@ -594,9 +595,18 @@ const AdminLoginDesign = () => {
     const load = async () => {
       const { data } = await supabase.from("app_organization").select("data").eq("id", "login_design").maybeSingle();
       if (data?.data && typeof data.data === "object") {
-        const loaded = migrateSettings(data.data as Record<string, any>);
+        const raw = data.data as Record<string, unknown>;
+        const loaded = migrateSettings(raw);
         setSettings(loaded);
+        setDraft(loaded);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+        if (!raw._brandVersion || raw._brandVersion < 2) {
+          await supabase.from("app_organization").upsert({
+            id: "login_design",
+            data: loaded as unknown as Record<string, unknown>,
+            updated_at: new Date().toISOString(),
+          });
+        }
       }
     };
     load();
@@ -699,7 +709,7 @@ const AdminLoginDesign = () => {
 
   const s = editing ? draft : settings;
   const hidden = s.hiddenElements || [];
-  const resolvedLogo = s.logoUrl || logoImg;
+  const resolvedLogo = s.logoUrl || STAIRWAY_LOGO;
   const pos = s.elementPositions || DEFAULT_ELEMENT_POSITIONS;
 
   const previewScale = 0.45;
@@ -1244,8 +1254,8 @@ const AdminLoginDesign = () => {
                         <div className="space-y-1" key={key}>
                           <Label className="text-[10px]">{label}</Label>
                           <div className="flex gap-1.5">
-                            <input type="color" value={(draft as any)[key]} onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} className="w-8 h-8 rounded cursor-pointer border-0" />
-                            <Input value={(draft as any)[key]} onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} className="h-8 text-[10px] font-mono flex-1" />
+                            <input type="color" value={(draft[key as keyof typeof draft]) as string} onChange={(e) => setDraft({ ...draft, [key as keyof typeof draft]: e.target.value })} className="w-8 h-8 rounded cursor-pointer border-0" />
+                            <Input value={(draft[key as keyof typeof draft]) as string} onChange={(e) => setDraft({ ...draft, [key as keyof typeof draft]: e.target.value })} className="h-8 text-[10px] font-mono flex-1" />
                           </div>
                         </div>
                       ))}

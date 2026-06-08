@@ -14,18 +14,21 @@ interface AuditLogEntry {
   action: AuditAction;
   actor_id: string;
   actor_role: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
+type UntypedRpc = (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>;
+
 export const logObjectiveChangeAudit = async (entry: AuditLogEntry) => {
-  const { error } = await supabase.rpc("insert_objective_audit_log" as any, {
+  const rpc = supabase.rpc as unknown as UntypedRpc;
+  const { error } = await rpc("insert_objective_audit_log", {
     _action: entry.action,
     _actor_id: entry.actor_id,
     _actor_role: entry.actor_role,
     _change_request_id: entry.change_request_id,
     _objective_id: entry.objective_id,
     _user_id: entry.user_id,
-    _details: entry.details || {},
+    _details: entry.details ?? {},
   });
   if (error) console.error("Audit log error:", error);
 };

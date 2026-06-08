@@ -14,9 +14,9 @@ interface AuditEntry {
   table_name: string;
   action: string;
   user_id: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
-  extra?: Record<string, any>;
+  extra?: Record<string, unknown>;
 }
 
 const AdminAuditLog = () => {
@@ -47,7 +47,7 @@ const AdminAuditLog = () => {
           table_name: "Objectifs (demandes)",
           action: e.action,
           user_id: e.user_id,
-          details: typeof e.details === "object" && e.details !== null ? e.details as Record<string, any> : {},
+          details: typeof e.details === "object" && e.details !== null ? e.details as Record<string, unknown> : {},
           created_at: e.created_at,
           extra: { actor_id: e.actor_id, actor_role: e.actor_role },
         });
@@ -68,7 +68,7 @@ const AdminAuditLog = () => {
           table_name: "Planning hebdomadaire",
           action: e.action,
           user_id: e.user_id,
-          details: typeof e.details === "object" && e.details !== null ? e.details as Record<string, any> : {},
+          details: typeof e.details === "object" && e.details !== null ? e.details as Record<string, unknown> : {},
           created_at: e.created_at,
           extra: { actor_id: e.actor_id, week_start: e.week_start },
         });

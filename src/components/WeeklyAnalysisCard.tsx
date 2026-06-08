@@ -35,7 +35,7 @@ interface WeeklyAnalysisCardProps {
   projectData: ProjectAnalysisData[];
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/weekly-analysis`;
+const CHAT_URL = "/api/weekly-analysis";
 
 const WeeklyAnalysisCard = ({ projectData }: WeeklyAnalysisCardProps) => {
   const [analysis, setAnalysis] = useState("");
@@ -47,14 +47,9 @@ const WeeklyAnalysisCard = ({ projectData }: WeeklyAnalysisCardProps) => {
     setAnalysis("");
 
     try {
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
-          apikey: supabaseKey,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectData }),
       });
 

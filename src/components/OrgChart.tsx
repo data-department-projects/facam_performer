@@ -14,6 +14,7 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfiles } from "@/hooks/useProfiles";
 import EditOrganizationDialog from "@/components/EditOrganizationDialog";
+import OrgChartAutoView from "@/components/OrgChartAutoView";
 
 /* ─────────────────────────────────────────
    CONSTANTS
@@ -571,7 +572,7 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
 
   /* ── State ── */
   const [orgView, setOrgView]             = useState<"today" | "tomorrow">(externalView);
-  const [viewMode, setViewMode]           = useState<"tree" | "grid">("tree");
+  const [viewMode, setViewMode]           = useState<"tree" | "grid" | "auto">("tree");
   const [scale, setScale]                 = useState(0.78);
   const [pan, setPan]                     = useState({ x: 0, y: 0 });
   const [selectedDept, setSelectedDept]   = useState<Department | null>(null);
@@ -779,10 +780,22 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
             <Grid3X3 className="w-3.5 h-3.5" />
             Grille
           </button>
+          <button
+            onClick={() => setViewMode("auto")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all",
+              viewMode === "auto"
+                ? "bg-secondary text-white shadow-sm"
+                : isPresentation ? "text-white/50 hover:text-white/80" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <User className="w-3.5 h-3.5" />
+            Hiérarchie
+          </button>
         </div>
 
-        {/* Today / Tomorrow */}
-        <div className={cn(
+        {/* Today / Tomorrow — masqué en mode Hiérarchie automatique */}
+        {viewMode !== "auto" && <div className={cn(
           "flex items-center gap-0.5 rounded-xl p-0.5",
           isPresentation ? "bg-white/10" : "bg-muted"
         )}>
@@ -800,7 +813,7 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
               {v === "today" ? "Aujourd'hui" : "Demain"}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* Search */}
         <div className="relative flex-1 max-w-[240px]">
@@ -1068,6 +1081,14 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
               Mode spotlight — {orgView === "tomorrow" ? (selectedDept.nameTomorrow || selectedDept.name) : selectedDept.name}
             </motion.div>
           )}
+        </div>
+      ) : viewMode === "auto" ? (
+        /* ── AUTO HIERARCHY MODE ── */
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <OrgChartAutoView
+            profiles={profiles}
+            departments={departments}
+          />
         </div>
       ) : (
         /* ── GRID MODE ── */

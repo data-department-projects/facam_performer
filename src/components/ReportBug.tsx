@@ -54,9 +54,33 @@ const ReportBug = () => {
         reporter_email: profile?.email ?? null,
         status: "open",
       });
+
+      // Fire-and-forget — email failure must never block the UX
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session?.access_token) return;
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            type: "bug_report",
+            payload: {
+              category: categorie,
+              urgency: urgence,
+              title: titre,
+              description,
+              page_concerned: page || null,
+              reporter_name: profile?.full_name ?? profile?.email ?? "Anonyme",
+              reporter_email: profile?.email ?? null,
+            },
+          }),
+        }).catch(() => {});
+      });
+
       setSubmitted(true);
     } catch {
-      // La table n'existe peut-être pas encore — on sauvegarde quand même localement
       toast({
         title: "Signalement enregistré",
         description: "Votre signalement a été transmis à l'équipe support.",

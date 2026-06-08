@@ -6,6 +6,7 @@ import { useCommittees } from "@/contexts/CommitteesContext";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useDepartments } from "@/contexts/DepartmentsContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import type { Department } from "@/data/departments";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,19 @@ const DAY_LABELS_7 = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi
 
 const PRODUCTION_MAINTENANCE_DEPTS = ["production", "maintenance"];
 
-const isProductionOrMaintenanceDept = (departmentId: string | null | undefined, departments: any[]): boolean => {
+interface OpMeeting {
+  id: string;
+  title: string;
+  day_of_week: number;
+  time_start?: string | null;
+  time_end?: string | null;
+  participant_ids?: string[];
+  animator_ids?: string[];
+}
+
+const isProductionOrMaintenanceDept = (departmentId: string | null | undefined, departments: Department[]): boolean => {
   if (!departmentId) return false;
-  const dept = departments.find((d: any) => d.id === departmentId);
+  const dept = departments.find((d) => d.id === departmentId);
   if (!dept) return false;
   return PRODUCTION_MAINTENANCE_DEPTS.some(name => dept.name?.toLowerCase().includes(name));
 };
@@ -68,6 +79,8 @@ const getSubmissionDeadline = (weekStartStr: string): Date => {
   return friday;
 };
 
+type UntypedRpc = (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>;
+
 const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: () => void; refreshKey?: number }) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -81,7 +94,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
   const DAY_LABELS = is7Days ? DAY_LABELS_7 : DAY_LABELS_5;
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [opMeetings, setOpMeetings] = useState<any[]>([]);
+  const [opMeetings, setOpMeetings] = useState<OpMeeting[]>([]);
   const [newTitles, setNewTitles] = useState<Record<number, string>>({});
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
   const [collapsed, setCollapsed] = useState(false);
@@ -183,8 +196,8 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
       p.responsibles?.includes(userName)
     );
     const userCommittees = committees.filter(c =>
-      (c as any).members?.some?.((m: any) => m.name === userName || m === userName) ||
-      (c as any).president === userName
+      c.members?.some(m => m.name === userName) ||
+      c.responsible === userName
     );
     return [
       ...userProjects.map(p => ({ id: p.id, name: p.name, type: "projet" as const })),
@@ -243,7 +256,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
     });
 
     return virtualTodos;
-  }, [committees, profiles, user, profile, weekStart]);
+  }, [committees, profiles, user, profile, weekStart, is7Days]);
 
   // Virtual read-only tasks from operational meetings (recurring weekly on fixed day)
   const operationalMeetingTodos = useMemo(() => {
@@ -279,7 +292,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
     });
 
     return virtualTodos;
-  }, [opMeetings, user, weekStart]);
+  }, [opMeetings, user, weekStart, is7Days]);
 
   const getMilestonesForProject = useCallback((projectId: string) => {
     const userName = profile?.full_name || "";
@@ -330,7 +343,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
   }, [user, weekStart]);
 
   useEffect(() => { fetchTodos(); fetchPlannerStatus(); }, [fetchTodos, fetchPlannerStatus]);
-  useEffect(() => { if (refreshKey > 0) fetchTodos(); }, [refreshKey]);
+  useEffect(() => { if (refreshKey > 0) fetchTodos(); }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch operational meetings
   useEffect(() => {
@@ -346,7 +359,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
   const goToCurrentWeek = () => setSelectedWeekDate(new Date());
 
   const getNewDeliverable = (day: number) => newDeliverable[day] || { has: false, linkedToProject: false, projectId: "", name: "" };
-  const setNewDeliverableField = (day: number, field: string, value: any) => {
+  const setNewDeliverableField = (day: number, field: string, value: string | boolean) => {
     setNewDeliverable(prev => ({
       ...prev,
       [day]: { ...getNewDeliverable(day), ...prev[day], [field]: value },
@@ -375,7 +388,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
     });
     if (!error) {
       // Log audit
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await (supabase.rpc as unknown as UntypedRpc)("insert_weekly_planner_audit", {
         _action: "task_added", _actor_id: user.id, _user_id: user.id,
         _week_start: weekStart, _details: { title, day_of_week: dayOfWeek },
       });
@@ -406,7 +419,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
     }
     await supabase.from("weekly_todos").delete().eq("id", id);
     if (user) {
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await (supabase.rpc as unknown as UntypedRpc)("insert_weekly_planner_audit", {
         _action: "task_deleted", _actor_id: user.id, _user_id: user.id,
         _week_start: weekStart, _details: { title: todo?.title },
       });
@@ -430,14 +443,21 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
       manager_comment: "",
     }, { onConflict: "user_id,week_start" });
     if (!error) {
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await (supabase.rpc as unknown as UntypedRpc)("insert_weekly_planner_audit", {
         _action: "submitted", _actor_id: user.id, _user_id: user.id,
         _week_start: weekStart, _details: { task_count: todos.length },
       });
       // Notify manager via email (fire & forget)
-      supabase.functions.invoke("notify-manager-planning", {
-        body: { user_id: user.id, week_start: weekStart },
-      }).catch(() => {});
+      supabase.auth.getSession()
+        .then(({ data: { session } }) => {
+          if (!session) return;
+          return fetch("/api/notify-planning", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({ user_id: user.id, week_start: weekStart }),
+          });
+        })
+        .catch(() => {});
       toast({ title: "Planner envoyé", description: "Votre planning a été envoyé à votre manager pour validation." });
       fetchPlannerStatus();
     }

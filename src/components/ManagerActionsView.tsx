@@ -172,7 +172,7 @@ const ManagerActionsView = ({ onNavigate }: { onNavigate?: (view: string) => voi
       setLoading(false);
     };
     fetchData();
-  }, [user, subordinateIds, isAdmin, projects]);
+  }, [user, subordinateIds, isAdmin, projects]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchAcknowledgements(); }, [fetchAcknowledgements]);
 
@@ -209,7 +209,7 @@ const ManagerActionsView = ({ onNavigate }: { onNavigate?: (view: string) => voi
     });
     const allItems = [...items, ...overdueTodos];
     return allItems.sort((a, b) => b.daysOverdue - a.daysOverdue);
-  }, [projects, subordinateIds, user, overdueTodos]);
+  }, [projects, subordinateIds, user, overdueTodos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter active (non-acknowledged) items
   const activeObjectiveRequests = pendingObjectiveRequests.filter(r => !isAcknowledged("objective_request", r.id));
@@ -572,11 +572,11 @@ const ManagerActionsView = ({ onNavigate }: { onNavigate?: (view: string) => voi
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-[10px]">Collaborateur</TableHead>
-                      <TableHead className="text-[10px]">Type</TableHead>
-                      <TableHead className="text-[10px]">Champ</TableHead>
-                      <TableHead className="text-[10px]">Explication</TableHead>
-                      <TableHead className="text-[10px]">Date</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Type</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Champ</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Explication</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Date</TableHead>
                       <TableHead className="text-[10px] text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -694,11 +694,11 @@ const ManagerActionsView = ({ onNavigate }: { onNavigate?: (view: string) => voi
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-[10px]">Source</TableHead>
-                      <TableHead className="text-[10px]">Collaborateur</TableHead>
-                      <TableHead className="text-[10px]">Tâche</TableHead>
-                      <TableHead className="text-[10px]">Jalon</TableHead>
-                      <TableHead className="text-[10px]">Deadline</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Source</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Collaborateur</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Tâche</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Jalon</TableHead>
+                      <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Deadline</TableHead>
                       <TableHead className="text-[10px] text-right">Retard</TableHead>
                       <TableHead className="text-[10px] text-right">Livrable</TableHead>
                       <TableHead className="text-[10px] text-right">Action</TableHead>

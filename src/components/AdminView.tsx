@@ -110,9 +110,9 @@ const AdminView = ({ orgView, onOrgViewChange, initialTab }: AdminViewProps) => 
     reader.onload = (evt) => {
       const wb = XLSX.read(evt.target?.result, { type: "array" });
       const deptSheet = wb.Sheets["Départements"] || wb.Sheets[wb.SheetNames[0]];
-      const deptRows: any[] = deptSheet ? XLSX.utils.sheet_to_json(deptSheet) : [];
+      const deptRows = (deptSheet ? XLSX.utils.sheet_to_json(deptSheet) : []) as Record<string, unknown>[];
       const svcSheet = wb.Sheets["Services"];
-      const svcRows: any[] = svcSheet ? XLSX.utils.sheet_to_json(svcSheet) : [];
+      const svcRows = (svcSheet ? XLSX.utils.sheet_to_json(svcSheet) : []) as Record<string, unknown>[];
 
       if (deptRows.length === 0) {
         toast({ title: "Fichier vide", variant: "destructive" });
@@ -422,7 +422,7 @@ const AdminView = ({ orgView, onOrgViewChange, initialTab }: AdminViewProps) => 
                           <Select value={dept.head2 || "__none__"} onValueChange={v => {
                             const name = v === "__none__" ? "" : v;
                             const p = collaborators.find(c => c.full_name === name);
-                            updateDepartment({ ...dept, head2: name, headRoleToday2: name ? (p?.poste || "") : "" } as any);
+                            updateDepartment({ ...dept, head2: name, headRoleToday2: name ? (p?.poste || "") : "" });
                           }}>
                             <SelectTrigger className="text-sm h-8"><SelectValue placeholder="Aucun" /></SelectTrigger>
                             <SelectContent className="max-h-60">

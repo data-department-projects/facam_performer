@@ -306,17 +306,17 @@ const AdminGlobalDesign = ({ moduleId = "global" }: Props) => {
     // Load overlay from DB
     const loadOverlay = async () => {
       const { data } = await supabase.from("app_organization").select("data").eq("id", `module_overlay_${moduleId}`).maybeSingle();
-      if (data?.data) setOverlay({ ...DEFAULT_OVERLAY, ...(data.data as any) });
+      if (data?.data) setOverlay({ ...DEFAULT_OVERLAY, ...(data.data as unknown as Partial<typeof DEFAULT_OVERLAY>) });
       else setOverlay(DEFAULT_OVERLAY);
     };
     loadOverlay();
-  }, [moduleId]);
+  }, [moduleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startEdit = () => { setDraft(getModuleSettings(moduleId)); setEditing(true); setSelectedEl(null); };
 
   const handleSave = async () => {
     updateModuleSettings(moduleId, draft);
-    await supabase.from("app_organization").upsert({ id: `module_overlay_${moduleId}`, data: overlay as any });
+    await supabase.from("app_organization").upsert({ id: `module_overlay_${moduleId}`, data: overlay as unknown as import("@/integrations/supabase/types").Json });
     setEditing(false);
     toast({ title: `Design "${moduleLabel}" sauvegardé ✓` });
   };
@@ -326,7 +326,7 @@ const AdminGlobalDesign = ({ moduleId = "global" }: Props) => {
     setOverlay(DEFAULT_OVERLAY);
   };
 
-  const update = (field: keyof ModuleDesignSettings, value: any) => setDraft(prev => ({ ...prev, [field]: value }));
+  const update = (field: keyof ModuleDesignSettings, value: string | number) => setDraft(prev => ({ ...prev, [field]: value }));
 
   // Drag handler for custom overlays
   const handleDrag = useCallback((id: string, pos: Position) => {

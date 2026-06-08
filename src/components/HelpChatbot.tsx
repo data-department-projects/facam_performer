@@ -7,7 +7,7 @@ import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/help-chatbot`;
+const CHAT_URL = "/api/help-chatbot";
 
 const HelpChatbot = () => {
   const [open, setOpen] = useState(false);
@@ -45,10 +45,7 @@ const HelpChatbot = () => {
     try {
       const resp = await fetch(CHAT_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: allMessages }),
       });
 

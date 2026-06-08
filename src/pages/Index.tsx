@@ -6,8 +6,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import AppSidebar, { ViewType } from "@/components/AppSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
+import PasswordChangeDialog from "@/components/PasswordChangeDialog";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { KeyRound, X } from "lucide-react";
 
 
 // Lazy load heavy view components
@@ -33,6 +35,7 @@ const ManagerActionsView = lazy(() => import("@/components/ManagerActionsView"))
 const DGExecutiveReport = lazy(() => import("@/components/DGExecutiveReport"));
 const HelpChatbot = lazy(() => import("@/components/HelpChatbot"));
 const ReportBug = lazy(() => import("@/components/ReportBug"));
+const UserProfileView = lazy(() => import("@/components/UserProfileView"));
 
 
 const ViewLoader = () => (
@@ -47,7 +50,7 @@ const ViewLoader = () => (
 
 const Index = () => {
   const { departments } = useDepartments();
-  const { isAdmin, allowedModules, loading, profile } = useAuth();
+  const { isAdmin, allowedModules, loading, profile, mustChangePassword } = useAuth();
   const { applyModuleDesign, resetToGlobal } = useGlobalDesign();
 
   const [mainView, setMainView] = useState<ViewType | null>(null);
@@ -56,6 +59,8 @@ const Index = () => {
   const [todoRefreshKey, setTodoRefreshKey] = useState(0);
   const [adminInitialTab, setAdminInitialTab] = useState<string | undefined>(undefined);
   const [scrollToValidation, setScrollToValidation] = useState(false);
+  const [pwdBannerDismissed, setPwdBannerDismissed] = useState(false);
+  const [orgHeaderStats, setOrgHeaderStats] = useState<{ label: string; value: number; highlight?: boolean }[]>([]);
 
   const sidebarModules: ViewType[] = [
   "accueil",
@@ -71,11 +76,12 @@ const Index = () => {
   "badgemanagement",
   "actions",
   "guide",
-  "report_error"];
+  "report_error",
+  "profil"];
 
 
   // "accueil", "guide", "report_error" are always accessible; "actions" is accessible to managers
-  const alwaysAccessible: ViewType[] = ["accueil", "guide", "report_error"];
+  const alwaysAccessible: ViewType[] = ["accueil", "guide", "report_error", "profil"];
   if (profile?.is_manager) alwaysAccessible.push("actions");
 
   const accessibleViews = isAdmin ?
@@ -95,6 +101,30 @@ const Index = () => {
       setMainView(activeView);
     }
   }, [loading, activeView, mainView]);
+
+  // Fetch org stats for header (only when on orgchart view)
+  useEffect(() => {
+    if (activeView !== "orgchart") return;
+    supabase
+      .from("profiles")
+      .select("is_manager, poste")
+      .then(({ data }) => {
+        if (!data) return;
+        const total = data.length;
+        const managers = data.filter((p) => p.is_manager).length;
+        const stagiaires = data.filter(
+          (p) => typeof p.poste === "string" && p.poste.toLowerCase().includes("stagiaire")
+        ).length;
+        const collaborateurs = total - managers - stagiaires;
+        const pills: { label: string; value: number; highlight?: boolean }[] = [
+          { label: "Effectif total", value: total },
+          { label: "Managers", value: managers, highlight: true },
+          { label: "Collaborateurs", value: collaborateurs },
+        ];
+        if (stagiaires > 0) pills.push({ label: "Stagiaires", value: stagiaires });
+        setOrgHeaderStats(pills);
+      });
+  }, [activeView]);
 
   // Apply per-module design when view changes
   useEffect(() => {
@@ -120,6 +150,7 @@ const Index = () => {
     actions: { title: "Actions à traiter", subtitle: "Validations, demandes et retards de vos collaborateurs" },
     guide: { title: "Guide d'utilisation", subtitle: "Procédures et bonnes pratiques de la plateforme" },
     report_error: { title: "Signaler une erreur", subtitle: "Transmettez un problème à l'équipe support informatique" },
+    profil: { title: "Mon Profil", subtitle: "Gérez vos informations et votre mot de passe" },
   };
 
   const currentModule = activeView && MODULE_TITLES[activeView] || { title: "", subtitle: "" };
@@ -140,11 +171,11 @@ const Index = () => {
         case "orgchart":return <OrgChart />;
         case "admin":return <AdminView orgView={orgView} onOrgViewChange={setOrgView} initialTab={adminInitialTab} />;
         case "timeentry":{
-            const skipPlanning = !!(profile as any)?.skip_personal_planning;
+            const skipPlanning = !!(profile?.skip_personal_planning);
             const handleToggleSkip = async () => {
               if (!profile) return;
               const newVal = !skipPlanning;
-              const { error } = await supabase.from("profiles").update({ skip_personal_planning: newVal } as any).eq("user_id", profile.user_id);
+              const { error } = await supabase.from("profiles").update({ skip_personal_planning: newVal }).eq("user_id", profile.user_id);
               if (error) {
                 console.error("Toggle DG mode error:", error);
                 return;
@@ -184,6 +215,7 @@ const Index = () => {
         case "badgemanagement":return <BadgeManagement />;
         case "guide":return <UserManual />;
         case "report_error":return <ReportBug />;
+        case "profil":return <UserProfileView />;
         case "actions":return <ManagerActionsView onNavigate={(view: string) => {
             if (view === "timeentry:validation") {
               setScrollToValidation(true);
@@ -212,7 +244,48 @@ const Index = () => {
       <AppSidebar currentView={activeView || "accueil"} onViewChange={(v) => {setAdminInitialTab(undefined);setMainView(v);}} onNavigateToAdminTab={(tab) => {setAdminInitialTab(tab);setMainView("admin");}} />
       <main className="flex-1 overflow-y-auto relative z-10">
         <div className="max-w-7xl mx-auto px-5 py-5">
-          <DashboardHeader title={currentModule.title} subtitle={currentModule.subtitle} minimal={activeView === "accueil"} />
+          <DashboardHeader
+            title={currentModule.title}
+            subtitle={currentModule.subtitle}
+            minimal={true}
+            stats={activeView === "orgchart" ? orgHeaderStats : undefined}
+          />
+
+          {/* ── Bannière changement de mot de passe recommandé ── */}
+          <AnimatePresence>
+            {mustChangePassword && !pwdBannerDismissed && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -8, height: 0 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden mb-4"
+              >
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
+                  <KeyRound className="w-4 h-4 text-amber-500 shrink-0" />
+                  <p className="text-[12px] font-medium flex-1">
+                    Votre mot de passe temporaire n'a pas encore été modifié. Nous recommandons de le changer pour sécuriser votre compte.
+                  </p>
+                  <PasswordChangeDialog
+                    trigger={
+                      <Button size="sm" variant="outline" className="shrink-0 h-7 text-[11px] border-amber-300 text-amber-700 hover:bg-amber-100 hover:text-amber-900 gap-1.5">
+                        <KeyRound className="w-3 h-3" />
+                        Changer maintenant
+                      </Button>
+                    }
+                  />
+                  <button
+                    onClick={() => setPwdBannerDismissed(true)}
+                    className="p-1 rounded hover:bg-amber-100 text-amber-400 hover:text-amber-600 transition-colors shrink-0"
+                    title="Masquer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}

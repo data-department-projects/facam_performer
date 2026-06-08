@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { TimeEntry } from "@/data/projects";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
+import type { TimeEntryRow } from "@/types";
 import { invalidatePreloadCache } from "@/hooks/useDataPreloader";
 
 interface AddEntryResult {
@@ -34,9 +36,9 @@ const calcHours = (start: string, end: string): number => {
   return Math.max(0, (eh + em / 60) - (sh + sm / 60));
 };
 
-const mapRows = (data: any[]) =>
+const mapRows = (data: TimeEntryRow[]): TimeEntry[] =>
   data.map(row => ({
-    ...(row.data as any),
+    ...(row.data as unknown as TimeEntry),
     id: row.id,
     _user_id: row.user_id,
     _validated: row.validated,
@@ -75,10 +77,10 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
     const { id, ...rest } = newEntry;
     const { error } = await supabase.from("app_time_entries").upsert({
       id,
-      data: rest as any,
+      data: rest as unknown as Json,
       user_id: userId,
       validated: true,
-    } as any);
+    });
 
     if (error) {
       console.error("Add time entry error:", error);
@@ -88,7 +90,7 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
     if (entry.taskId && userId) {
       const { error: todoError } = await supabase
         .from("weekly_todos")
-        .update({ completed: true, updated_at: new Date().toISOString() } as any)
+        .update({ completed: true, updated_at: new Date().toISOString() })
         .eq("id", entry.taskId)
         .eq("user_id", userId);
 
