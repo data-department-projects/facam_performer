@@ -8,6 +8,7 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { useDepartments } from "@/contexts/DepartmentsContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -136,7 +137,7 @@ const TimeEntryForm = ({ todoRefreshKey = 0, onTodoCompleted }: { todoRefreshKey
   const [exemptLoading, setExemptLoading] = useState(true);
   const [dayTodos, setDayTodos] = useState<DayTodo[]>([]);
   const [meetingAttendance, setMeetingAttendance] = useState<Record<string, { attended: string; reason: string }>>({});
-  const [opMeetings, setOpMeetings] = useState<any[]>([]);
+  const [opMeetings, setOpMeetings] = useState<Database["public"]["Tables"]["operational_meetings"]["Row"][]>([]);
 
   const collaboratorName = profile?.full_name || "";
 
@@ -210,7 +211,7 @@ const TimeEntryForm = ({ todoRefreshKey = 0, onTodoCompleted }: { todoRefreshKey
       .order("sort_order");
     if (data) setDayTodos(data as unknown as DayTodo[]);
     else setDayTodos([]);
-  }, [user, date, selectedDayOfWeek, todoRefreshKey]);
+  }, [user, date, selectedDayOfWeek, todoRefreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchDayTodos(); }, [fetchDayTodos]);
 
@@ -279,7 +280,7 @@ const TimeEntryForm = ({ todoRefreshKey = 0, onTodoCompleted }: { todoRefreshKey
     const checkExemption = async () => {
       if (!user) { setExemptLoading(false); return; }
       const { data } = await supabase
-        .from("time_entry_exemptions" as any)
+        .from("time_entry_exemptions")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
@@ -364,11 +365,12 @@ const TimeEntryForm = ({ todoRefreshKey = 0, onTodoCompleted }: { todoRefreshKey
       const attended = att?.attended === "oui";
       const isOp = meeting.id.startsWith("op-");
       const prefix = isOp ? "Réunion op." : "Comité";
+      const meetingExtra = meeting as { time_end?: string; institution?: string; connectionLink?: string };
       const commentText = attended
-        ? `[${prefix}: ${meeting.committeeName}] Présent${meeting.time ? ` ${meeting.time}${(meeting as any).time_end ? `-${(meeting as any).time_end}` : ""}` : ""}${(meeting as any).institution ? ` — ${(meeting as any).institution}` : ""}`
+        ? `[${prefix}: ${meeting.committeeName}] Présent${meeting.time ? ` ${meeting.time}${meetingExtra.time_end ? `-${meetingExtra.time_end}` : ""}` : ""}${meetingExtra.institution ? ` — ${meetingExtra.institution}` : ""}`
         : `[${prefix}: ${meeting.committeeName}] Absent — Raison : ${att?.reason?.trim()}`;
 
-      const meetingEndTime = (meeting as any).time_end || (meeting.time ? (() => {
+      const meetingEndTime = meetingExtra.time_end || (meeting.time ? (() => {
         const [h, m] = meeting.time.split(":").map(Number);
         return `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
       })() : "10:00");
@@ -685,14 +687,14 @@ const TimeEntryForm = ({ todoRefreshKey = 0, onTodoCompleted }: { todoRefreshKey
                       <span className="text-base">{meeting.committeeIcon}</span>
                       <div>
                         <span className="text-xs font-semibold text-foreground">{meeting.committeeName}</span>
-                        {meeting.time && <span className="text-[10px] text-muted-foreground ml-2">{meeting.time}{(meeting as any).time_end ? ` - ${(meeting as any).time_end}` : ""}</span>}
-                        {(meeting as any).connectionLink && (
-                          <a href={(meeting as any).connectionLink} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary underline ml-2">
+                        {meeting.time && <span className="text-[10px] text-muted-foreground ml-2">{meeting.time}{(meeting as { time_end?: string }).time_end ? ` - ${(meeting as { time_end?: string }).time_end}` : ""}</span>}
+                        {(meeting as { connectionLink?: string }).connectionLink && (
+                          <a href={(meeting as { connectionLink?: string }).connectionLink} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary underline ml-2">
                             🔗 Rejoindre
                           </a>
                         )}
-                        {!isOp && (meeting as any).institution && (
-                          <Badge variant="secondary" className="text-[9px] ml-2">🏦 {(meeting as any).institution}</Badge>
+                        {!isOp && (meeting as { institution?: string }).institution && (
+                          <Badge variant="secondary" className="text-[9px] ml-2">🏦 {(meeting as { institution?: string }).institution}</Badge>
                         )}
                       </div>
                     </div>

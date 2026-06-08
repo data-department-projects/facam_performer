@@ -43,8 +43,8 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
     if (isAdmin) { setCanCreateProjects(true); return; }
     if (!user) return;
     const check = async () => {
-      const { data } = await supabase.from("user_create_permissions" as any).select("can_create_projects").eq("user_id", user.id).maybeSingle();
-      setCanCreateProjects(!!(data as any)?.can_create_projects);
+      const { data } = await supabase.from("user_create_permissions").select("can_create_projects").eq("user_id", user.id).maybeSingle();
+      setCanCreateProjects(!!data?.can_create_projects);
     };
     check();
   }, [user, isAdmin]);
@@ -596,7 +596,7 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
                           updateProject({ ...proj, collaborators: updatedCollabs });
                         };
 
-                        const updateMissionField = (missionIdx: number, field: keyof CollaboratorMission, value: any) => {
+                        const updateMissionField = (missionIdx: number, field: keyof CollaboratorMission, value: CollaboratorMission[keyof CollaboratorMission]) => {
                           const updatedCollabs = [...proj.collaborators];
                           const missions = [...(updatedCollabs[collabIdx].missions || [])];
                           missions[missionIdx] = { ...missions[missionIdx], [field]: value };
@@ -626,7 +626,7 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
                           updateProject({ ...proj, collaborators: updatedCollabs });
                         };
 
-                        const updateMissionMilestone = (missionIdx: number, msId: string, field: string, value: any) => {
+                        const updateMissionMilestone = (missionIdx: number, msId: string, field: string, value: string) => {
                           const updatedCollabs = [...proj.collaborators];
                           const missions = [...(updatedCollabs[collabIdx].missions || [])];
                           missions[missionIdx] = {

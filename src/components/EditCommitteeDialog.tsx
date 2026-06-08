@@ -64,7 +64,7 @@ const EditCommitteeDialog = ({ committee, open, onOpenChange, onSave }: EditComm
   };
 
   // For responsible, try to match existing names to user_ids on first load
-  const resolvedResponsibleIds = (draft as any).responsibleIds ||
+  const resolvedResponsibleIds = (draft as unknown as { responsibleIds?: string[] }).responsibleIds ||
     responsibleIds.map(nameOrId => {
       const byId = collaborators.find(c => c.user_id === nameOrId);
       if (byId) return nameOrId;
@@ -75,7 +75,7 @@ const EditCommitteeDialog = ({ committee, open, onOpenChange, onSave }: EditComm
   // Participants: stored as CommitteeMember[], convert to/from user_id selection
   const memberIds = draft.members
     .map(m => {
-      if ((m as any).userId) return (m as any).userId;
+      if ((m as unknown as { userId?: string }).userId) return (m as unknown as { userId: string }).userId;
       const match = collaborators.find(c => c.full_name === m.name);
       return match?.user_id;
     })
@@ -83,7 +83,7 @@ const EditCommitteeDialog = ({ committee, open, onOpenChange, onSave }: EditComm
 
   const setMemberIds = (ids: string[]) => {
     const newMembers: CommitteeMember[] = ids.map(id => {
-      const existing = draft.members.find(m => (m as any).userId === id || m.name === collaborators.find(c => c.user_id === id)?.full_name);
+      const existing = draft.members.find(m => (m as unknown as { userId?: string }).userId === id || m.name === collaborators.find(c => c.user_id === id)?.full_name);
       const collab = collaborators.find(c => c.user_id === id);
       return {
         name: collab?.full_name || id,
@@ -234,7 +234,7 @@ const EditCommitteeDialog = ({ committee, open, onOpenChange, onSave }: EditComm
               <div className="space-y-2 mt-4">
                 <Label className="text-xs text-muted-foreground">Rôles des participants</Label>
                 {draft.members.map((m, i) => {
-                  const collab = collaborators.find(c => c.user_id === (m as any).userId || c.full_name === m.name);
+                  const collab = collaborators.find(c => c.user_id === (m as unknown as { userId?: string }).userId || c.full_name === m.name);
                   const dept = collab ? departments.find(d => d.id === collab.department_id) : null;
                   return (
                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">

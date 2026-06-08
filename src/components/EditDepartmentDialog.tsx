@@ -94,7 +94,7 @@ const EditDepartmentDialog = ({ department, open, onOpenChange, onSave }: EditDe
               </div>
               <Switch
                 checked={draft.visibleOnOrgChart !== false}
-                onCheckedChange={v => set("visibleOnOrgChart" as keyof Department, v as any)}
+                onCheckedChange={v => set("visibleOnOrgChart" as keyof Department, v as Department[keyof Department])}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -178,7 +178,7 @@ const EditDepartmentDialog = ({ department, open, onOpenChange, onSave }: EditDe
                 <Select value={draft.head} onValueChange={v => {
                   const p = profiles.find(pr => pr.full_name === v);
                   set("head", v);
-                  set("headRoleToday", (p?.poste || "") as any);
+                  set("headRoleToday", (p?.poste || ""));
                 }}>
                   <SelectTrigger className="text-sm h-9">
                     <SelectValue placeholder="Choisir un responsable" />
@@ -201,8 +201,8 @@ const EditDepartmentDialog = ({ department, open, onOpenChange, onSave }: EditDe
                 <Select value={draft.head2 || "__none__"} onValueChange={v => {
                   const name = v === "__none__" ? "" : v;
                   const p = profiles.find(pr => pr.full_name === name);
-                  set("head2" as keyof Department, name as any);
-                  set("headRoleToday2" as keyof Department, (name ? (p?.poste || "") : "") as any);
+                  set("head2" as keyof Department, name as Department[keyof Department]);
+                  set("headRoleToday2" as keyof Department, (name ? (p?.poste || "") : "") as Department[keyof Department]);
                 }}>
                   <SelectTrigger className="text-sm h-9">
                     <SelectValue placeholder="Choisir un 2ᵉ responsable" />

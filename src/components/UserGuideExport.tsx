@@ -10,7 +10,7 @@ const NAVY = "#001b61";
 const NAVY_LIGHT = "#002a6e";
 const CREAM = "#f0f4fa";
 
-const LOGO_URL = `${window.location.origin}/images/facam-performer-logo.png`;
+const LOGO_URL = `${window.location.origin}/facam_stairway-bleu.png`;
 
 interface GuideSection {
   title: string;

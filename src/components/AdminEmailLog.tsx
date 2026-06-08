@@ -64,7 +64,7 @@ export default function AdminEmailLog() {
 
   useEffect(() => {
     fetchLogs();
-  }, [timeRange]);
+  }, [timeRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Deduplicate by message_id (keep latest per message_id)
   const dedupLogs = useMemo(() => {

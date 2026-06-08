@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type AppModule = Database["public"]["Enums"]["app_module"];
+type AppRole = Database["public"]["Enums"]["app_role"];
+type UntypedRpc = (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>;
+
+interface AuthStatus {
+  user_id: string;
+  banned_until?: string | null;
+  last_sign_in_at?: string | null;
+  created_at?: string | null;
+}
 import { refreshProfiles } from "@/hooks/useProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDepartments } from "@/contexts/DepartmentsContext";
@@ -69,9 +81,10 @@ const AdminCollaborators = () => {
   const { isAdmin, user: authUser, refreshPermissions } = useAuth();
   const isFullAdmin = isAdmin;
 
-  const logAudit = async (action: string, target_user_id: string | null, details: Record<string, any> = {}) => {
+  const logAudit = async (action: string, target_user_id: string | null, details: Record<string, unknown> = {}) => {
     if (!authUser) return;
-    await supabase.rpc("insert_user_audit_log" as any, {
+    const rpc = supabase.rpc as unknown as UntypedRpc;
+    await rpc("insert_user_audit_log", {
       _action: action,
       _actor_id: authUser.id,
       _target_user_id: target_user_id,
@@ -109,7 +122,7 @@ const AdminCollaborators = () => {
   const [formCategory, setFormCategory] = useState<"cadre" | "ouvrier">("cadre");
   const [formBadgeNumber, setFormBadgeNumber] = useState("");
 
-  const invokeEdge = async (bodyData: Record<string, any>, retried = false): Promise<{ data: any; error: Error | null }> => {
+  const invokeEdge = async (bodyData: Record<string, unknown>, retried = false): Promise<{ data: unknown; error: Error | null }> => {
     let { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       const { data: refreshData } = await supabase.auth.refreshSession();
@@ -119,16 +132,14 @@ const AdminCollaborators = () => {
     if (!token) {
       return { data: null, error: new Error("Session expirée. Veuillez vous reconnecter.") };
     }
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`;
-    const resp = await fetch(url, {
+    const resp = await fetch("/api/admin-users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         "x-user-token": token,
       },
-      body: JSON.stringify({ ...bodyData, access_token: token }),
+      body: JSON.stringify(bodyData),
     });
     const data = await resp.json();
     if (resp.status === 401 && !retried) {
@@ -137,7 +148,7 @@ const AdminCollaborators = () => {
         return invokeEdge(bodyData, true);
       }
     }
-    if (!resp.ok) return { data: null, error: new Error(data.error || `Error ${resp.status}`) };
+    if (!resp.ok) return { data: null, error: new Error((data as { error?: string }).error || `Error ${resp.status}`) };
     return { data, error: null };
   };
 
@@ -148,15 +159,15 @@ const AdminCollaborators = () => {
     const { data: permissions } = await supabase.from("user_module_permissions").select("*");
     const { data: createPerms } = await supabase.from("user_create_permissions").select("*");
 
-    let authStatuses: any[] = [];
+    let authStatuses: AuthStatus[] = [];
     const statusRes = await invokeEdge({ action: "list_users_status" });
-    if (statusRes.data?.statuses) authStatuses = statusRes.data.statuses;
+    if (statusRes.data?.statuses) authStatuses = statusRes.data.statuses as AuthStatus[];
 
-    const userList: UserRow[] = (profiles ?? []).map((p: any) => {
-      const authInfo = authStatuses.find((s: any) => s.user_id === p.user_id);
+    const userList: UserRow[] = (profiles ?? []).map((p) => {
+      const authInfo = authStatuses.find((s) => s.user_id === p.user_id);
       const bannedUntil = authInfo?.banned_until;
       const isBanned = bannedUntil ? new Date(bannedUntil) > new Date() : false;
-      const cp = (createPerms as any[] ?? []).find((c: any) => c.user_id === p.user_id);
+      const cp = (createPerms ?? []).find((c) => c.user_id === p.user_id);
       return {
         user_id: p.user_id,
         full_name: p.full_name,
@@ -165,8 +176,8 @@ const AdminCollaborators = () => {
         service: p.service,
         poste: p.poste,
         hierarchy_user_id: p.hierarchy_user_id,
-        role: roles?.find((r: any) => r.user_id === p.user_id)?.role ?? "collaborator",
-        modules: permissions?.filter((m: any) => m.user_id === p.user_id).map((m: any) => m.module) ?? [],
+        role: roles?.find((r) => r.user_id === p.user_id)?.role ?? "collaborator",
+        modules: permissions?.filter((m) => m.user_id === p.user_id).map((m) => m.module) ?? [],
         is_banned: isBanned,
         last_sign_in_at: authInfo?.last_sign_in_at || null,
         created_at: authInfo?.created_at || null,
@@ -183,7 +194,7 @@ const AdminCollaborators = () => {
     refreshProfiles();
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { fetchUsers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resetForm = () => {
     setFormName(""); setFormEmail("");
@@ -223,27 +234,27 @@ const AdminCollaborators = () => {
       const persistedModules = sanitizePersistedModules(formModules);
       if (createdUserId && roleToUse !== "admin" && persistedModules.length > 0) {
         await supabase.from("user_module_permissions").insert(
-          persistedModules.map(m => ({ user_id: createdUserId, module: m as any }))
+          persistedModules.map(m => ({ user_id: createdUserId, module: m as AppModule }))
         );
       }
 
       if (createdUserId && (formCanCreateProjects || formCanCreateCommittees)) {
-        await supabase.from("user_create_permissions" as any).upsert({
+        await supabase.from("user_create_permissions").upsert({
           user_id: createdUserId,
           can_create_projects: formCanCreateProjects,
           can_create_committees: formCanCreateCommittees,
-        } as any);
+        });
       }
 
       if (createdUserId) {
         const dgUser = users.find(u => u.full_name === organization.leader);
         const hierarchyId = formIsManager && dgUser ? dgUser.user_id : (formHierarchy && formHierarchy !== "none" ? formHierarchy : null);
-        await supabase.from("profiles").update({ is_manager: formIsManager, hierarchy_user_id: hierarchyId, category: formCategory, badge_number: formBadgeNumber || null } as any).eq("user_id", createdUserId);
+        await supabase.from("profiles").update({ is_manager: formIsManager, hierarchy_user_id: hierarchyId, category: formCategory, badge_number: formBadgeNumber || null }).eq("user_id", createdUserId);
       }
     }
 
     if (!isFullAdmin && createdUserId) {
-      await supabase.from("profiles").update({ poste: formPoste || null, category: formCategory, badge_number: formBadgeNumber || null } as any).eq("user_id", createdUserId);
+      await supabase.from("profiles").update({ poste: formPoste || null, category: formCategory, badge_number: formBadgeNumber || null }).eq("user_id", createdUserId);
     }
 
     toast({ title: "Collaborateur créé ✓", description: `Un email d'invitation a été envoyé à ${formEmail}` });
@@ -290,7 +301,7 @@ const AdminCollaborators = () => {
         is_manager: formIsManager,
         category: formCategory,
         badge_number: formBadgeNumber || null,
-      } as any).eq("user_id", editing.user_id);
+      }).eq("user_id", editing.user_id);
       if (profErr) errors.push(`Profil: ${profErr.message}`);
 
       // 2. Update role (delete then insert sequentially)
@@ -308,22 +319,22 @@ const AdminCollaborators = () => {
         errors.push(`Modules (suppression): ${modDelErr.message}`);
       } else if (formRole !== "admin" && dbModules.length > 0) {
         const { error: modInsErr } = await supabase.from("user_module_permissions").insert(
-          dbModules.map(m => ({ user_id: editing.user_id, module: m as any }))
+          dbModules.map(m => ({ user_id: editing.user_id, module: m as AppModule }))
         );
         if (modInsErr) errors.push(`Modules (ajout): ${modInsErr.message}`);
       }
 
       // 4. Update create permissions
-      const { error: createPermErr } = await supabase.from("user_create_permissions" as any).upsert({
+      const { error: createPermErr } = await supabase.from("user_create_permissions").upsert({
         user_id: editing.user_id,
         can_create_projects: formCanCreateProjects,
         can_create_committees: formCanCreateCommittees,
-      } as any, { onConflict: "user_id" });
+      }, { onConflict: "user_id" });
       if (createPermErr) errors.push(`Permissions création: ${createPermErr.message}`);
     } else {
       const { error: salErr } = await supabase.from("profiles").update({
         salary: formSalary ? parseFloat(formSalary) : null,
-      } as any).eq("user_id", editing.user_id);
+      }).eq("user_id", editing.user_id);
       if (salErr) errors.push(`Salaire: ${salErr.message}`);
     }
 
@@ -456,7 +467,7 @@ const AdminCollaborators = () => {
     const fileData = await file.arrayBuffer();
     const wb = XLSX.read(fileData);
     const sheet = wb.Sheets[wb.SheetNames[0]];
-    const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+    const rows = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[];
 
     if (rows.length === 0) {
       toast({ title: "Fichier vide", variant: "destructive" });
@@ -504,7 +515,7 @@ const AdminCollaborators = () => {
 
     if (usersToCreate.length > 0) {
       const { data: importResult } = await invokeEdge({ users: usersToCreate });
-      const results = (importResult as any)?.results ?? [];
+      const results = (importResult as { results?: Array<{ success: boolean; user_id?: string; error?: string }> })?.results ?? [];
       for (let i = 0; i < results.length; i++) {
         if (results[i]?.success && results[i]?.user_id) {
           createdCount++;
@@ -512,7 +523,7 @@ const AdminCollaborators = () => {
           const allUsers = [...users];
           const hierarchyUserId = u.hierarchy_ref ? (allUsers.find(x => x.email.toLowerCase() === u.hierarchy_ref!.toLowerCase())?.user_id || null) : null;
           await supabase.from("profiles").update({ poste: u.poste, category: u.category, badge_number: u.badge_number, is_manager: u.is_manager, hierarchy_user_id: hierarchyUserId }).eq("user_id", results[i].user_id);
-          await supabase.from("user_create_permissions" as any).upsert({ user_id: results[i].user_id, can_create_projects: u.can_create_projects, can_create_committees: u.can_create_committees } as any);
+          await supabase.from("user_create_permissions").upsert({ user_id: results[i].user_id, can_create_projects: u.can_create_projects, can_create_committees: u.can_create_committees });
         }
       }
     }
@@ -521,13 +532,13 @@ const AdminCollaborators = () => {
       const hierarchyUserId = u.hierarchy_ref ? (users.find(x => x.email.toLowerCase() === u.hierarchy_ref.toLowerCase())?.user_id || null) : null;
       await supabase.from("profiles").update({ full_name: u.full_name, department_id: u.department_id, service: u.service, poste: u.poste, category: u.category, badge_number: u.badge_number, is_manager: u.is_manager, hierarchy_user_id: hierarchyUserId }).eq("user_id", u.user_id);
       await supabase.from("user_roles").delete().eq("user_id", u.user_id);
-      await supabase.from("user_roles").insert({ user_id: u.user_id, role: u.role as any });
+      await supabase.from("user_roles").insert({ user_id: u.user_id, role: u.role as AppRole });
       await supabase.from("user_module_permissions").delete().eq("user_id", u.user_id);
       const filteredModules = sanitizePersistedModules(u.modules);
       if (u.role !== "admin" && filteredModules.length > 0) {
-        await supabase.from("user_module_permissions").insert(filteredModules.map(m => ({ user_id: u.user_id, module: m as any })));
+        await supabase.from("user_module_permissions").insert(filteredModules.map(m => ({ user_id: u.user_id, module: m as AppModule })));
       }
-      await supabase.from("user_create_permissions" as any).upsert({ user_id: u.user_id, can_create_projects: u.can_create_projects, can_create_committees: u.can_create_committees } as any);
+      await supabase.from("user_create_permissions").upsert({ user_id: u.user_id, can_create_projects: u.can_create_projects, can_create_committees: u.can_create_committees });
       updatedCount++;
     }
 
@@ -662,7 +673,7 @@ const AdminCollaborators = () => {
       </div>
       <div className="space-y-1">
         <Label className="text-[10px]">Rôle</Label>
-        <Select value={formRole} onValueChange={v => setFormRole(v as any)}>
+        <Select value={formRole} onValueChange={v => setFormRole(v as AppRole)}>
           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="admin">Administrateur (accès complet)</SelectItem>
@@ -807,13 +818,13 @@ const AdminCollaborators = () => {
           <Table className={isFullAdmin ? "min-w-[1100px]" : "min-w-[400px]"}>
              <TableHeader>
               <TableRow>
-                <TableHead className="text-[10px]">Nom</TableHead>
-                {isFullAdmin && <TableHead className="text-[10px]">Email</TableHead>}
-                {isFullAdmin && <TableHead className="text-[10px]">Département</TableHead>}
-                {isFullAdmin && <TableHead className="text-[10px]">Poste</TableHead>}
-                <TableHead className="text-[10px]">Profil</TableHead>
-                <TableHead className="text-[10px]">N° Badge</TableHead>
-                <TableHead className="text-[10px] text-right sticky right-0 bg-card z-10">Actions</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Nom</TableHead>
+                {isFullAdmin && <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Email</TableHead>}
+                {isFullAdmin && <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Département</TableHead>}
+                {isFullAdmin && <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Poste</TableHead>}
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Profil</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">N° Badge</TableHead>
+                <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-right sticky right-0 bg-card z-10">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -883,7 +894,7 @@ const AdminCollaborators = () => {
                   )}
                   <TableCell className="text-xs">
                     <Select value={u.category || "cadre"} onValueChange={async (v) => {
-                      await supabase.from("profiles").update({ category: v } as any).eq("user_id", u.user_id);
+                      await supabase.from("profiles").update({ category: v }).eq("user_id", u.user_id);
                       fetchUsers();
                     }}>
                       <SelectTrigger className="h-7 text-[10px] w-[100px]"><SelectValue /></SelectTrigger>
@@ -901,7 +912,7 @@ const AdminCollaborators = () => {
                       onBlur={async (e) => {
                         const val = e.target.value.trim() || null;
                         if (val !== u.badge_number) {
-                          await supabase.from("profiles").update({ badge_number: val } as any).eq("user_id", u.user_id);
+                          await supabase.from("profiles").update({ badge_number: val }).eq("user_id", u.user_id);
                           fetchUsers();
                         }
                       }}

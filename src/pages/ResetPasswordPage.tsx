@@ -91,7 +91,7 @@ const ResetPasswordPage = () => {
 
     const { error: profileUpdateError } = await supabase
       .from("profiles")
-      .update({ must_change_password: false } as any)
+      .update({ must_change_password: false })
       .eq("user_id", updatedUserId);
 
     if (profileUpdateError) {
@@ -107,7 +107,7 @@ const ResetPasswordPage = () => {
     if (error) {
       const { error: rollbackError } = await supabase
         .from("profiles")
-        .update({ must_change_password: true } as any)
+        .update({ must_change_password: true })
         .eq("user_id", updatedUserId);
 
       if (rollbackError) {

@@ -59,7 +59,7 @@ const ProjectExpenses = ({ projectId }: ProjectExpensesProps) => {
     if (expensesRes.data) setExpenses(expensesRes.data);
   };
 
-  useEffect(() => { fetchData(); }, [projectId, user]);
+  useEffect(() => { fetchData(); }, [projectId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addType = async () => {
     if (!newTypeName.trim() || !user) return;

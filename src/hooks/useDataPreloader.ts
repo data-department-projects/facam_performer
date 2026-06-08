@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { AppDataRow, TimeEntryRow } from "@/types";
 
-interface PreloadedData {
-  departments: any[] | null;
-  projects: any[] | null;
-  committees: any[] | null;
-  timeEntries: any[] | null;
-  organization: any | null;
-  globalDesign: any | null;
-  moduleDesigns: any | null;
+export interface PreloadedData {
+  departments:   AppDataRow[] | null;
+  projects:      AppDataRow[] | null;
+  committees:    AppDataRow[] | null;
+  timeEntries:   TimeEntryRow[] | null;
+  organization:  unknown;
+  globalDesign:  unknown;
+  moduleDesigns: unknown;
 }
 
+// Cache module-level — évite les fetches redondants entre contextes/composants
 let cachedData: PreloadedData | null = null;
 let loadingPromise: Promise<PreloadedData> | null = null;
 
@@ -28,12 +30,12 @@ export const preloadAllData = async (): Promise<PreloadedData> => {
     supabase.from("app_organization").select("data").eq("id", "module_designs").maybeSingle(),
   ]).then(([depts, projects, committees, timeEntries, org, design, moduleDesigns]) => {
     const result: PreloadedData = {
-      departments: depts.data,
-      projects: projects.data,
-      committees: committees.data,
-      timeEntries: timeEntries.data,
-      organization: org.data?.data ?? null,
-      globalDesign: design.data?.data ?? null,
+      departments:   (depts.data       as AppDataRow[]  | null),
+      projects:      (projects.data    as AppDataRow[]  | null),
+      committees:    (committees.data  as AppDataRow[]  | null),
+      timeEntries:   (timeEntries.data as TimeEntryRow[] | null),
+      organization:  org.data?.data          ?? null,
+      globalDesign:  design.data?.data       ?? null,
       moduleDesigns: moduleDesigns.data?.data ?? null,
     };
     cachedData = result;
@@ -44,7 +46,7 @@ export const preloadAllData = async (): Promise<PreloadedData> => {
   return loadingPromise;
 };
 
-export const invalidatePreloadCache = () => {
+export const invalidatePreloadCache = (): void => {
   cachedData = null;
   loadingPromise = null;
 };

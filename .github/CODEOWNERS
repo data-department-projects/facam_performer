@@ -1,0 +1,27 @@
+# CODEOWNERS — Propriétaires de code FACAM PERFORMER
+# Toute modification dans ces chemins requiert une approbation du propriétaire
+# Format : <chemin>   @<github-username>
+#
+# Remplacez @votre-username par votre vrai nom d'utilisateur GitHub
+
+# Propriétaire global — approuve tout par défaut
+*                                   @Mabibè BANKATI
+
+# Infrastructure CI/CD & Configuration — approbation obligatoire
+/.github/                           @Mabibè BANKATI
+/vitest.config.ts                   @Mabibè BANKATI
+/tailwind.config.ts                 @votre-username
+/eslint.config.js                   @votre-username
+/vite.config.ts                     @votre-username
+/package.json                       @votre-username
+
+# Sécurité — approbation obligatoire sur tout changement
+/src/integrations/supabase/         @votre-username
+/src/contexts/AuthContext.tsx       @votre-username
+
+# Architecture applicative
+/src/contexts/                      @votre-username
+/src/pages/                         @votre-username
+/src/components/                    @votre-username
+/src/hooks/                         @votre-username
+/src/data/                          @votre-username

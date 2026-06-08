@@ -64,7 +64,7 @@ const TimeEntriesList = () => {
   const periodEntries = useMemo(() => {
     if (!user?.id) return [];
     return entries.filter(e => {
-      const entryUserId = (e as any)._user_id;
+      const entryUserId = (e as unknown as { _user_id?: string })._user_id;
       if (entryUserId ? entryUserId !== user.id : e.collaboratorName !== collaboratorName) return false;
       const d = new Date(e.date + "T00:00:00");
       if (periodMode === "range" && dateRange?.from && !dateRange?.to) {

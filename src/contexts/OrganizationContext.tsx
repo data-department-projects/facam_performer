@@ -1,7 +1,10 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { ServiceItem } from "@/data/departments";
 import { preloadAllData } from "@/hooks/useDataPreloader";
+
+type UntypedRpc = (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>;
 
 export interface FutureDirection {
   name: string;
@@ -66,16 +69,17 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     preloadAllData().then(cached => {
       if (cached.organization) {
-        setOrganization(cached.organization as any);
+        setOrganization(cached.organization as unknown as Organization);
       }
     });
   }, []);
 
   const updateOrganization = useCallback((org: Organization) => {
     setOrganization(org);
-    supabase.from("app_organization").upsert({ id: "main", data: org as any }).then(({ error }) => {
+    supabase.from("app_organization").upsert({ id: "main", data: org as unknown as Json }).then(({ error }) => {
       if (error?.code === "42501" || error?.message?.includes("row-level security")) {
-        supabase.rpc("log_security_violation" as any, {
+        const rpc = supabase.rpc as unknown as UntypedRpc;
+        rpc("log_security_violation", {
           _violation_type: "rls_bypass_attempt",
           _target_table: "app_organization",
           _target_action: "upsert",

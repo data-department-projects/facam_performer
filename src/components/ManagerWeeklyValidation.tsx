@@ -43,9 +43,11 @@ interface AuditEntry {
   id: string;
   action: string;
   actor_id: string;
-  details: any;
+  details: Record<string, unknown>;
   created_at: string;
 }
+
+const rpcAudit = supabase.rpc as unknown as (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>;
 
 const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: boolean; onScrolled?: () => void } = {}) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -130,7 +132,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
         validated_at: st.validated_at,
         manager_comment: st.manager_comment || "",
         planner_id: st.id,
-        todos: (todos || []) as any,
+        todos: (todos || []) as SubordinatePlanner["todos"],
       });
     }
 
@@ -153,7 +155,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
       .eq("id", planner.planner_id);
 
     if (!error) {
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await rpcAudit("insert_weekly_planner_audit", {
         _action: "validated", _actor_id: user.id, _user_id: planner.user_id,
         _week_start: planner.week_start, _details: { comment: comments[planner.planner_id] || "" },
       });
@@ -179,7 +181,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
       .eq("id", planner.planner_id);
 
     if (!error) {
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await rpcAudit("insert_weekly_planner_audit", {
         _action: "rejected", _actor_id: user.id, _user_id: planner.user_id,
         _week_start: planner.week_start, _details: { comment },
       });
@@ -208,7 +210,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
       .eq("id", planner.planner_id);
 
     if (!error) {
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await rpcAudit("insert_weekly_planner_audit", {
         _action: "sent_back", _actor_id: user.id, _user_id: planner.user_id,
         _week_start: planner.week_start, _details: { comment },
       });
@@ -286,7 +288,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
     for (const t of toDelete) {
       const { error } = await supabase.from("weekly_todos").delete().eq("id", t.id!);
       if (error) { hasError = true; continue; }
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await rpcAudit("insert_weekly_planner_audit", {
         _action: "task_deleted", _actor_id: user.id, _user_id: planner.user_id,
         _week_start: planner.week_start, _details: { title: t.title, by_manager: true },
       });
@@ -298,9 +300,9 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
         user_id: planner.user_id, week_start: planner.week_start,
         day_of_week: t.day_of_week, title: t.title, sort_order: 99,
         completed: false, has_deliverable: false, deliverable_linked_to_project: false,
-      } as any);
+      });
       if (error) { hasError = true; continue; }
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await rpcAudit("insert_weekly_planner_audit", {
         _action: "task_added", _actor_id: user.id, _user_id: planner.user_id,
         _week_start: planner.week_start, _details: { title: t.title, day_of_week: t.day_of_week, by_manager: true },
       });
@@ -309,9 +311,9 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
     // Update modified tasks
     for (const t of modified) {
       const original = planner.todos.find(o => o.id === t.id);
-      const { error } = await supabase.from("weekly_todos").update({ title: t.title } as any).eq("id", t.id!);
+      const { error } = await supabase.from("weekly_todos").update({ title: t.title }).eq("id", t.id!);
       if (error) { hasError = true; continue; }
-      await supabase.rpc("insert_weekly_planner_audit" as any, {
+      await rpcAudit("insert_weekly_planner_audit", {
         _action: "task_modified", _actor_id: user.id, _user_id: planner.user_id,
         _week_start: planner.week_start, _details: { old_title: original?.title, new_title: t.title, by_manager: true },
       });

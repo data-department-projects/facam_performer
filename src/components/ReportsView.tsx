@@ -79,7 +79,7 @@ const ReportsView = () => {
 
   useEffect(() => {
     fetchReports();
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async () => {
     if (!user || !formTitle.trim() || !formContent.trim() || !formPeriodStart || !formPeriodEnd || !formDeptId) {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useDepartments } from "@/contexts/DepartmentsContext";
@@ -13,7 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Building2, Users, FolderKanban, Layers, TrendingUp, AlertTriangle,
   CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Link2, XCircle,
-  Briefcase, Target
+  Briefcase, Target, Star
 } from "lucide-react";
 import { parseISO, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -185,6 +186,15 @@ const PersonalDashboard = () => {
 
   const toggleExpand = (key: string) => setExpandedKpi(prev => prev === key ? null : key);
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Bonjour";
+    if (h < 18) return "Bon après-midi";
+    return "Bonsoir";
+  })();
+
+  const firstName = profile?.full_name?.split(" ")[0] ?? profile?.email?.split("@")[0] ?? "";
+
   const ExpandButton = ({ kpiKey, label }: { kpiKey: string; label: string }) => (
     <Button
       variant="ghost"
@@ -203,16 +213,69 @@ const PersonalDashboard = () => {
         <DataToolbar moduleType="dashboard" />
       </div>
 
-      {/* ═══ DEPARTMENT LABEL ═══ */}
-      <div className="flex items-center gap-2 px-1">
-        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Building2 className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-display font-bold">{departmentName}</p>
-          <p className="text-[10px] text-muted-foreground">Mon département</p>
-        </div>
-      </div>
+      {/* ═══ WELCOME BANNER ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <Card className="shadow-card overflow-hidden relative bg-secondary border-0">
+          {/* Decorative SVG background */}
+          <svg
+            className="absolute right-0 top-0 h-full w-40 opacity-[0.07] pointer-events-none"
+            viewBox="0 0 160 120"
+            fill="none"
+            preserveAspectRatio="xMaxYMid slice"
+          >
+            <circle cx="140" cy="100" r="80" fill="white" />
+            <circle cx="115" cy="75" r="56" fill="white" />
+            <circle cx="145" cy="45" r="38" fill="white" />
+            <circle cx="120" cy="95" r="22" fill="#ffae03" />
+          </svg>
+
+          <CardContent className="p-5 relative z-10">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                {/* Greeting */}
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary mb-0.5">
+                  {greeting}
+                </p>
+                <h2 className="font-display text-xl font-bold text-white leading-tight truncate">
+                  {firstName || userName}
+                </h2>
+
+                {/* Badges */}
+                <div className="flex items-center flex-wrap gap-2 mt-2.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-white/80">
+                    <Building2 className="w-3 h-3 shrink-0" />
+                    <span className="truncate max-w-[160px]">{departmentName}</span>
+                  </span>
+                  {isManager ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/25 text-[10px] font-bold text-primary">
+                      <Star className="w-3 h-3 shrink-0" />
+                      Manager
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-semibold text-white/70">
+                      <Users className="w-3 h-3 shrink-0" />
+                      Collaborateur
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: KPI summary pill */}
+              <div className="shrink-0 hidden sm:flex flex-col items-end gap-1.5">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-white font-display font-bold text-lg leading-none">{progressPct}%</span>
+                </div>
+                <p className="text-[9px] text-white/50 uppercase tracking-wider font-semibold">Avancement</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* ═══ KPI CARDS ═══ */}
       <div className={`grid grid-cols-2 ${isManager ? "md:grid-cols-3 lg:grid-cols-5" : "md:grid-cols-2 lg:grid-cols-4"} gap-3`}>
@@ -221,8 +284,8 @@ const PersonalDashboard = () => {
           <Card className="shadow-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-accent" />
+                <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-secondary" />
                 </div>
                 <div className="flex-1">
                   <p className="text-2xl font-display font-bold">{subordinates.length}</p>
@@ -239,7 +302,7 @@ const PersonalDashboard = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center">
-                <FolderKanban className="w-4 h-4 text-secondary-foreground" />
+                <FolderKanban className="w-4 h-4 text-secondary" />
               </div>
               <div className="flex-1">
                 <p className="text-2xl font-display font-bold">{myProjects.length}</p>
@@ -270,8 +333,8 @@ const PersonalDashboard = () => {
         <Card className="shadow-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-accent" />
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="text-2xl font-display font-bold">{progressPct}%</p>
@@ -409,7 +472,7 @@ const PersonalDashboard = () => {
                         <p className="text-xs font-medium truncate">{p.name}</p>
                         <p className="text-[10px] text-muted-foreground">{(p.collaborators || []).length} collaborateur(s)</p>
                       </div>
-                      <Badge variant="outline" className="text-[9px] shrink-0">{(p as any).status || "actif"}</Badge>
+                      <Badge variant="outline" className="text-[9px] shrink-0">{p.status || "actif"}</Badge>
                     </div>
                   ))}
                 </div>

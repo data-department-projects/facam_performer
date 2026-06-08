@@ -19,7 +19,7 @@ interface Violation {
   violation_type: string;
   target_table: string | null;
   target_action: string | null;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
 }
 
@@ -79,7 +79,9 @@ const AdminSecurityViolations = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleUnblock = async (userId: string) => {
-    const { error } = await supabase.rpc("unblock_user" as any, { _user_id: userId });
+    type UntypedRpc = (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>;
+    const rpc = supabase.rpc as unknown as UntypedRpc;
+    const { error } = await rpc("unblock_user", { _user_id: userId });
     if (error) {
       toast({ title: "Erreur", description: "Impossible de débloquer l'utilisateur.", variant: "destructive" });
     } else {
@@ -96,15 +98,20 @@ const AdminSecurityViolations = () => {
     setAiLoading(true);
     setAiAnalysis(null);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-security", {
-        body: { violations: filteredViolations.slice(0, 50) },
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Session expirée. Veuillez vous reconnecter.");
+      const aiResp = await fetch("/api/analyze-security", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ violations: filteredViolations.slice(0, 50) }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setAiAnalysis(data.analysis);
-    } catch (e: any) {
+      const data = await aiResp.json() as { analysis?: string; error?: string };
+      if (!aiResp.ok || data.error) throw new Error(data.error || `Erreur ${aiResp.status}`);
+      setAiAnalysis(data.analysis ?? null);
+    } catch (e: unknown) {
       console.error("AI analysis error:", e);
-      toast({ title: "Erreur", description: e.message || "Analyse IA indisponible.", variant: "destructive" });
+      const msg = e instanceof Error ? e.message : "Analyse IA indisponible.";
+      toast({ title: "Erreur", description: msg, variant: "destructive" });
     } finally {
       setAiLoading(false);
     }
@@ -176,7 +183,7 @@ const AdminSecurityViolations = () => {
     URL.revokeObjectURL(url);
   };
 
-  const formatDetails = (details: Record<string, any>): string[] => {
+  const formatDetails = (details: Record<string, unknown>): string[] => {
     const lines: string[] = [];
     if (details.error_code) lines.push(`Code erreur: ${details.error_code}`);
     if (details.error_message) lines.push(`Message: ${details.error_message}`);

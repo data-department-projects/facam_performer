@@ -1,0 +1,139 @@
+name: "Security — DevSecOps"
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+  schedule:
+    # Scan complet chaque lundi à 7h00 UTC
+    - cron: "0 7 * * 1"
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # ────────────────────────────────────────────────────────────
+  # 1. SAST — CodeQL (analyse statique du code TypeScript/JS)
+  # ────────────────────────────────────────────────────────────
+  codeql:
+    name: "SAST — CodeQL"
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Initialisation CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Requêtes : vulnérabilités + qualité
+          queries: security-and-quality
+
+      - name: AutoBuild CodeQL
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyse CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # ────────────────────────────────────────────────────────────
+  # 2. SCA — npm audit (dépendances vulnérables / CVE)
+  # ────────────────────────────────────────────────────────────
+  dependency-scan:
+    name: "SCA — Audit des dépendances"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: npm audit — niveau critique (bloquant)
+        run: npm audit --audit-level=critical
+
+      - name: npm audit — rapport complet JSON
+        if: always()
+        run: npm audit --json > audit-report.json || true
+
+      - name: Upload rapport d'audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report-${{ github.sha }}
+          path: audit-report.json
+          retention-days: 30
+
+  # ────────────────────────────────────────────────────────────
+  # 3. Secret Scan — Gitleaks (secrets et credentials exposés)
+  # ────────────────────────────────────────────────────────────
+  secret-scan:
+    name: "Secret Scan — Gitleaks"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code (historique complet)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan de secrets avec Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # ────────────────────────────────────────────────────────────
+  # 4. Outdated — détection des packages obsolètes
+  # ────────────────────────────────────────────────────────────
+  outdated-check:
+    name: "Dépendances obsolètes"
+    runs-on: ubuntu-latest
+    # Non-bloquant : informatif uniquement
+    continue-on-error: true
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Rapport des packages obsolètes
+        run: |
+          echo "## Dépendances obsolètes" >> $GITHUB_STEP_SUMMARY
+          npm outdated --json | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin) if sys.stdin.readable() else {}
+          if not data:
+              print('Toutes les dépendances sont à jour.')
+          else:
+              for pkg, info in data.items():
+                  print(f'- {pkg}: {info.get(\"current\")} → {info.get(\"latest\")}')
+          " >> $GITHUB_STEP_SUMMARY || echo "Toutes les dépendances sont à jour."

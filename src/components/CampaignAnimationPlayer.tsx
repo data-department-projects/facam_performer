@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import logoImg from "@/assets/facam-performer-logo.png";
+const logoImg = "/facam_stairway-bleu.png";
 
 interface Campaign {
   id: string;
@@ -28,7 +28,7 @@ const CampaignAnimationPlayer = () => {
   useEffect(() => {
     if (!user) return;
     checkCampaigns();
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkCampaigns = async () => {
     if (!user) return;
@@ -49,7 +49,7 @@ const CampaignAnimationPlayer = () => {
       .eq("user_id", user.id);
 
     const viewMap = new Map<string, { lastViewed: Date; viewCount: number }>();
-    (views || []).forEach((v: any) => {
+    (views || []).forEach((v: { campaign_id: string; viewed_at: string; view_count: number | null }) => {
       viewMap.set(v.campaign_id, {
         lastViewed: new Date(v.viewed_at),
         viewCount: v.view_count || 1,
@@ -129,13 +129,14 @@ const CampaignAnimationPlayer = () => {
       .maybeSingle();
 
     if (existing) {
+      const prev = existing as { view_count?: number | null };
       await supabase.from("campaign_views")
-        .update({ viewed_at: new Date().toISOString(), view_count: ((existing as any).view_count || 1) + 1 })
+        .update({ viewed_at: new Date().toISOString(), view_count: (prev.view_count || 1) + 1 })
         .eq("campaign_id", campaign.id)
         .eq("user_id", user.id);
     } else {
       await supabase.from("campaign_views")
-        .insert({ campaign_id: campaign.id, user_id: user.id, viewed_at: new Date().toISOString(), view_count: 1 } as any);
+        .insert({ campaign_id: campaign.id, user_id: user.id, viewed_at: new Date().toISOString(), view_count: 1 });
     }
 
     setTimeout(() => setCampaign(null), 700);

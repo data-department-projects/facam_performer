@@ -105,7 +105,7 @@ const AdminCampaigns = () => {
       recurrence: c.recurrence,
       is_active: c.is_active,
       priority: c.priority,
-      max_views: (c as any).max_views ?? null,
+      max_views: c.max_views ?? null,
     });
     setDialogOpen(true);
   };
@@ -126,7 +126,7 @@ const AdminCampaigns = () => {
       recurrence: c.recurrence,
       is_active: false,
       priority: c.priority,
-      max_views: (c as any).max_views ?? null,
+      max_views: c.max_views ?? null,
     });
     setDialogOpen(true);
   };
@@ -174,7 +174,7 @@ const AdminCampaigns = () => {
       toast.error("Le titre est requis");
       return;
     }
-    const payload = { ...form } as any;
+    const payload = { ...form };
     if (editing) {
       const { error } = await supabase
         .from("campaign_animations")
@@ -262,7 +262,7 @@ const AdminCampaigns = () => {
                       {c.date_start && <span>Du {format(new Date(c.date_start), "dd MMM yyyy", { locale: fr })}</span>}
                       {c.date_end && <span>Au {format(new Date(c.date_end), "dd MMM yyyy", { locale: fr })}</span>}
                       <span>Priorité: {c.priority}</span>
-                      {(c as any).max_views != null && <span>Max: {(c as any).max_views} vue(s)</span>}
+                      {c.max_views != null && <span>Max: {c.max_views} vue(s)</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -428,7 +428,7 @@ const AdminCampaigns = () => {
 
             <p className="text-[10px] text-muted-foreground/50">
               Durée: {editing?.duration_seconds || 6}s • {TRIGGER_LABELS[editing?.trigger_type || "first_login"]}
-              {(editing as any)?.max_views != null && ` • Max ${(editing as any).max_views} vue(s)`}
+              {editing?.max_views != null && ` • Max ${editing.max_views} vue(s)`}
             </p>
           </div>
         </DialogContent>

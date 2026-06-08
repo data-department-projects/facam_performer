@@ -100,7 +100,7 @@ const DeptObjectiveKpisDialog = ({ open, onOpenChange, objectiveId, objectiveTit
           unit: k.unit,
           target_value: k.target_value,
           actual_value: k.actual_value,
-        })) as any
+        }))
       );
       if (error) { toast.error("Erreur lors de l'ajout"); console.error(error); }
     }
@@ -108,7 +108,7 @@ const DeptObjectiveKpisDialog = ({ open, onOpenChange, objectiveId, objectiveTit
     // Update existing
     for (const k of toUpdate) {
       const { error } = await supabase.from("department_objective_kpis")
-        .update({ label: k.label, unit: k.unit, target_value: k.target_value, actual_value: k.actual_value } as any)
+        .update({ label: k.label, unit: k.unit, target_value: k.target_value, actual_value: k.actual_value })
         .eq("id", k.id!);
       if (error) { toast.error("Erreur mise à jour"); console.error(error); }
     }
@@ -161,8 +161,8 @@ const DeptObjectiveKpisDialog = ({ open, onOpenChange, objectiveId, objectiveTit
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-[10px]">Indicateur</TableHead>
-                    <TableHead className="text-[10px]">Unité</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Indicateur</TableHead>
+                    <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Unité</TableHead>
                     <TableHead className="text-[10px] text-right">Cible</TableHead>
                     <TableHead className="text-[10px] text-right">Réalisé</TableHead>
                     <TableHead className="text-[10px] text-center">%</TableHead>

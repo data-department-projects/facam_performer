@@ -63,7 +63,7 @@ const AdminOperationalMeetings = () => {
       .select("*")
       .order("day_of_week", { ascending: true });
     if (data) {
-      setMeetings(data as any);
+      setMeetings(data as unknown as OperationalMeeting[]);
     }
     setLoading(false);
   }, []);
@@ -98,8 +98,8 @@ const AdminOperationalMeetings = () => {
       connection_link: formLink.trim() || null,
       animator_ids: formAnimators,
       participant_ids: formParticipants,
-      created_by: user?.id,
-    } as any);
+      created_by: user?.id ?? "",
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -149,12 +149,12 @@ const AdminOperationalMeetings = () => {
             <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px]">Titre</TableHead>
-                  <TableHead className="text-[10px]">Jour</TableHead>
-                  <TableHead className="text-[10px]">Horaire</TableHead>
-                  <TableHead className="text-[10px]">Lien de connexion</TableHead>
-                  <TableHead className="text-[10px]">Manager(s)</TableHead>
-                  <TableHead className="text-[10px]">Participants</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Titre</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Jour</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Horaire</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Lien de connexion</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Manager(s)</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Participants</TableHead>
                   {isAdmin && <TableHead className="text-[10px] text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>

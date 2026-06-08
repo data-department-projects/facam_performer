@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,20 +46,24 @@ const FridayDeadlineToggle = () => {
   };
 
   return (
-    <Card className="p-5 space-y-3">
-      <div className="flex items-center gap-2 mb-1">
-        <CalendarClock className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-bold">Clôture hebdomadaire</h3>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
-          <Label className="text-xs font-medium">Activer la clôture du vendredi</Label>
-          <p className="text-[10px] text-muted-foreground">
-            Bloque la soumission du Week Planner et la saisie de temps après le vendredi (16h / 17h)
-          </p>
+    <Card className="shadow-card">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-display flex items-center gap-2">
+          <CalendarClock className="w-4 h-4 text-primary" />
+          Clôture hebdomadaire
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-xs font-medium">Activer la clôture du vendredi</Label>
+            <p className="text-[10px] text-muted-foreground">
+              Bloque la soumission du Week Planner et la saisie de temps après le vendredi (16h / 17h)
+            </p>
+          </div>
+          <Switch checked={enabled} onCheckedChange={toggle} />
         </div>
-        <Switch checked={enabled} onCheckedChange={toggle} />
-      </div>
+      </CardContent>
     </Card>
   );
 };
@@ -135,8 +139,9 @@ const AdminConfiguration = () => {
         title: "Planification sauvegardée ✓",
         description: `Sauvegarde automatique chaque ${DAYS.find(d => d.value === backupDay)?.label} à ${HOURS.find(h => h.value === backupHour)?.label}`,
       });
-    } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      toast({ title: "Erreur", description: msg, variant: "destructive" });
     } finally {
       setSavingSchedule(false);
     }
@@ -145,8 +150,14 @@ const AdminConfiguration = () => {
   const handleRunBackupNow = async () => {
     setRunningBackup(true);
     try {
-      const { data, error } = await supabase.functions.invoke("scheduled-backup");
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Session expirée. Veuillez vous reconnecter.");
+      const backupResp = await fetch("/api/backup", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await backupResp.json() as { success?: boolean; file?: string; tables?: number; error?: string };
+      if (!backupResp.ok) throw new Error(data?.error || `Erreur ${backupResp.status}`);
       if (data?.success) {
         toast({
           title: "Sauvegarde terminée ✓",
@@ -157,8 +168,9 @@ const AdminConfiguration = () => {
       } else {
         throw new Error(data?.error || "Erreur inconnue");
       }
-    } catch (err: any) {
-      toast({ title: "Erreur de sauvegarde", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      toast({ title: "Erreur de sauvegarde", description: msg, variant: "destructive" });
     } finally {
       setRunningBackup(false);
     }
@@ -166,8 +178,11 @@ const AdminConfiguration = () => {
 
   const handleDownloadBackupZip = async (fileName: string) => {
     const zipName = fileName.replace(".json", ".zip");
-    const picker = (window as any).showSaveFilePicker;
-    let fileHandle: any = null;
+    type FileSystemWritableFileStream = { write: (data: Blob) => Promise<void>; close: () => Promise<void> };
+    type FileSystemFileHandle = { createWritable: () => Promise<FileSystemWritableFileStream> };
+    type ShowSaveFilePicker = (options: unknown) => Promise<FileSystemFileHandle>;
+    const picker = (window as Window & { showSaveFilePicker?: ShowSaveFilePicker }).showSaveFilePicker;
+    let fileHandle: FileSystemFileHandle | null = null;
 
     // IMPORTANT: open save dialog immediately (while user gesture is still active)
     if (picker) {
@@ -176,8 +191,8 @@ const AdminConfiguration = () => {
           suggestedName: zipName,
           types: [{ description: "Archive ZIP", accept: { "application/zip": [".zip"] } }],
         });
-      } catch (e: any) {
-        if (e?.name === "AbortError") {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") {
           toast({ title: "Téléchargement annulé" });
           return;
         }
@@ -196,7 +211,7 @@ const AdminConfiguration = () => {
       for (const [table, rows] of Object.entries(parsed)) {
         if (!Array.isArray(rows) || rows.length === 0) continue;
         const ws = XLSX.utils.json_to_sheet(
-          rows.map((row: any) => {
+          rows.map((row: Record<string, unknown>) => {
             const flat: Record<string, string> = {};
             for (const [k, v] of Object.entries(row)) {
               let str = typeof v === "object" ? JSON.stringify(v) : String(v ?? "");
@@ -240,8 +255,9 @@ const AdminConfiguration = () => {
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
       toast({ title: "Téléchargement lancé", description: "Si rien ne se passe, utilisez Chrome/Edge." });
-    } catch (err: any) {
-      toast({ title: "Erreur de téléchargement", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      toast({ title: "Erreur de téléchargement", description: msg, variant: "destructive" });
     }
   };
 
@@ -251,8 +267,9 @@ const AdminConfiguration = () => {
       if (error) throw error;
       setBackups((prev) => prev.filter((b) => b.name !== fileName));
       toast({ title: "Sauvegarde supprimée ✓" });
-    } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      toast({ title: "Erreur", description: msg, variant: "destructive" });
     }
   };
 
@@ -267,96 +284,100 @@ const AdminConfiguration = () => {
     <div className="space-y-6">
 
       {/* Sauvegarde hebdomadaire */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <HardDrive className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-bold">Sauvegarde hebdomadaire automatique</h3>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          La sauvegarde automatique est active. Choisissez le jour et l'heure d'exécution.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Jour de la sauvegarde</Label>
-            <Select value={backupDay} onValueChange={setBackupDay}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DAYS.map(d => (
-                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-display flex items-center gap-2">
+            <HardDrive className="w-4 h-4 text-primary" />
+            Sauvegarde hebdomadaire automatique
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            La sauvegarde automatique est active. Choisissez le jour et l'heure d'exécution.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Jour de la sauvegarde</Label>
+              <Select value={backupDay} onValueChange={setBackupDay}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DAYS.map(d => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Heure de la sauvegarde</Label>
+              <Select value={backupHour} onValueChange={setBackupHour}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {HOURS.map(h => (
+                    <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Heure de la sauvegarde</Label>
-            <Select value={backupHour} onValueChange={setBackupHour}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {HOURS.map(h => (
-                  <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={handleRunBackupNow}
+              disabled={runningBackup}
+            >
+              {runningBackup ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+              Sauvegarder maintenant
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={handleSaveBackup}
+              disabled={savingSchedule}
+            >
+              {savingSchedule ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              Enregistrer la planification
+            </Button>
           </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="text-xs gap-1.5"
-            onClick={handleRunBackupNow}
-            disabled={runningBackup}
-          >
-            {runningBackup ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-            Sauvegarder maintenant
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            className="text-xs gap-1.5"
-            onClick={handleSaveBackup}
-            disabled={savingSchedule}
-          >
-            {savingSchedule ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            Enregistrer la planification
-          </Button>
-        </div>
+        </CardContent>
       </Card>
 
       {/* Liste des sauvegardes */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-bold">Liste des sauvegardes disponibles</h3>
-          </div>
-          <div className="flex items-center gap-2">
-           <Button type="button" variant="outline" size="sm" className="text-xs gap-1.5" onClick={loadBackups} disabled={loadingBackups}>
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-display flex items-center gap-2">
+              <Database className="w-4 h-4 text-primary" />
+              Liste des sauvegardes disponibles
+            </CardTitle>
+            <Button type="button" variant="outline" size="sm" className="text-xs gap-1.5" onClick={loadBackups} disabled={loadingBackups}>
               {loadingBackups ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
               Actualiser
             </Button>
           </div>
-        </div>
-
+        </CardHeader>
+        <CardContent className="p-0">
         {loadingBackups ? (
           <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin mr-2" /> Chargement...
           </div>
         ) : backups.length === 0 ? (
-          <div className="text-center py-8 text-xs text-muted-foreground">
+          <div className="text-center py-8 text-xs text-muted-foreground px-4">
             <FileArchive className="w-8 h-8 mx-auto mb-2 opacity-30" />
             Aucune sauvegarde disponible. La première sauvegarde automatique sera créée selon la planification.
           </div>
         ) : (
-          <div className="border rounded-md overflow-hidden">
+          <div className="overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">Fichier</TableHead>
-                  <TableHead className="text-xs">Date</TableHead>
-                  <TableHead className="text-xs">Taille</TableHead>
-                  <TableHead className="text-xs text-right">Actions</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Fichier</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Date</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase">Taille</TableHead>
+                  <TableHead className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -402,35 +423,40 @@ const AdminConfiguration = () => {
             </Table>
           </div>
         )}
+        </CardContent>
       </Card>
 
       {/* Clôture vendredi */}
       <FridayDeadlineToggle />
 
       {/* Informations système */}
-      <Card className="p-5 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-bold">Informations système</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="space-y-0.5">
-            <p className="text-muted-foreground">Version de l'application</p>
-            <p className="font-medium">1.0.0</p>
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-display flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Informations système
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="space-y-0.5">
+              <p className="text-muted-foreground">Version de l'application</p>
+              <p className="font-medium">1.0.0</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-muted-foreground">Environnement</p>
+              <p className="font-medium">Production</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-muted-foreground">Dernière sauvegarde</p>
+              <p className="font-medium">
+                {lastBackup
+                  ? new Date(lastBackup).toLocaleString("fr-FR")
+                  : "Aucune sauvegarde effectuée"}
+              </p>
+            </div>
           </div>
-          <div className="space-y-0.5">
-            <p className="text-muted-foreground">Environnement</p>
-            <p className="font-medium">Production</p>
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-muted-foreground">Dernière sauvegarde</p>
-            <p className="font-medium">
-              {lastBackup
-                ? new Date(lastBackup).toLocaleString("fr-FR")
-                : "Aucune sauvegarde effectuée"}
-            </p>
-          </div>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

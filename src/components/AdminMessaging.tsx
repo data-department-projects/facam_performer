@@ -180,15 +180,27 @@ const AdminMessaging = () => {
     let successCount = 0;
     let errorCount = 0;
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
+      setSending(false);
+      return;
+    }
+
     for (const recipient of recipients) {
       const filledBody = fillTemplate(current.body, recipient);
       const filledSubject = fillTemplate(current.subject, recipient);
 
       try {
-        const { error } = await supabase.functions.invoke("send-admin-email", {
-          body: { to: recipient.email, subject: filledSubject, body: filledBody },
+        const resp = await fetch("/api/send-admin-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ to: recipient.email, subject: filledSubject, body: filledBody }),
         });
-        if (error) {
+        if (!resp.ok) {
           errorCount++;
         } else {
           successCount++;
