@@ -69,7 +69,7 @@ jobs:
           cache: npm
 
       - name: Installation des dépendances
-        run: npm ci
+        run: npm install
 
       - name: npm audit — niveau critique (bloquant)
         run: npm audit --audit-level=critical
@@ -123,7 +123,7 @@ jobs:
           cache: npm
 
       - name: Installation des dépendances
-        run: npm ci
+        run: npm install
 
       - name: Rapport des packages obsolètes
         run: |
