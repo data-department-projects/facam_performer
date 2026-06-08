@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
 
 // Doit être avant les imports du module sous test (hoisting)
 vi.mock("sonner", () => ({
@@ -10,6 +10,10 @@ vi.mock("sonner", () => ({
 
 import { handleError, withToast, withErrorToast } from "@/lib/supabase-helpers";
 import { toast } from "sonner";
+
+// Supprime les console.error intentionnels de handleError (isDev=true en test)
+beforeAll(() => vi.spyOn(console, "error").mockImplementation(() => {}));
+afterAll(() => vi.restoreAllMocks());
 
 // Stub minimal d'une PostgrestError
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
