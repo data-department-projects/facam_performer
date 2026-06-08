@@ -12,7 +12,8 @@
       "Bash(cd \"/c/Users/BK/Documents/FACAM PROJETS/FACAM PERFORMER/src/components\" && wc -l *.tsx | sort -rn | head -20)",
       "Read(//c/c/Users/BK/Documents/FACAM PROJETS/FACAM PERFORMER/src/**)",
       "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\BK\\\\Documents\\\\FACAM PROJETS\\\\FACAM PERFORMER\\\\src\" -ErrorAction SilentlyContinue)",
-      "Bash(grep -v \"//.*any\")"
+      "Bash(grep -v \"//.*any\")",
+      "Bash(git remote *)"
     ]
   }
 }
