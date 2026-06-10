@@ -630,7 +630,6 @@ const GanttTaskPanel = ({ mode: initialMode, projectId, task, onClose }: GanttTa
   );
 };
 
-const STATUS_LABEL: Record<string, string> = { planned: "Planifié", "in-progress": "En cours", done: "Terminé" };
 const STATUS_COLOR: Record<string, string> = {
   planned: "bg-muted text-muted-foreground border border-border",
   "in-progress": "bg-primary/10 text-primary border border-primary/20",
