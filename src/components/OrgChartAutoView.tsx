@@ -1,16 +1,16 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronRight, Users, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronRight, Users, ZoomIn, ZoomOut, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
 import { Department } from "@/data/departments";
 
 /* ── Constants ─────────────────────────────────────── */
-const NW = 200;   // node width
-const NH = 72;    // node height
-const HGAP = 24;  // horizontal gap between siblings
-const VGAP = 72;  // vertical gap between levels
+const NW = 200;
+const NH = 72;
+const HGAP = 24;
+const VGAP = 72;
 
 const AVATAR_PALETTE: [string, string][] = [
   ["#dbeafe", "#1d4ed8"], ["#ede9fe", "#6d28d9"], ["#fce7f3", "#be185d"],
@@ -32,7 +32,6 @@ interface TreeNode {
   profile: Profile;
   children: TreeNode[];
   collapsed: boolean;
-  // Layout
   x: number;
   y: number;
   subtreeW: number;
@@ -41,18 +40,9 @@ interface TreeNode {
 /* ── Build tree from flat profiles list ────────────── */
 function buildTree(profiles: Profile[]): TreeNode[] {
   const nodeMap = new Map<string, TreeNode>();
-
-  // Create all nodes
   profiles.forEach(p => {
-    nodeMap.set(p.user_id, {
-      profile: p,
-      children: [],
-      collapsed: false,
-      x: 0, y: 0, subtreeW: NW,
-    });
+    nodeMap.set(p.user_id, { profile: p, children: [], collapsed: false, x: 0, y: 0, subtreeW: NW });
   });
-
-  // Link parent → children
   const roots: TreeNode[] = [];
   profiles.forEach(p => {
     const node = nodeMap.get(p.user_id)!;
@@ -62,18 +52,12 @@ function buildTree(profiles: Profile[]): TreeNode[] {
       roots.push(node);
     }
   });
-
   return roots;
 }
 
-/* ── Layout: compute subtree widths bottom-up, positions top-down ─ */
 function computeSubtreeWidth(node: TreeNode): number {
-  if (node.collapsed || node.children.length === 0) {
-    node.subtreeW = NW;
-    return NW;
-  }
-  const childrenTotalW = node.children.reduce((sum, c) => sum + computeSubtreeWidth(c), 0)
-    + HGAP * (node.children.length - 1);
+  if (node.collapsed || node.children.length === 0) { node.subtreeW = NW; return NW; }
+  const childrenTotalW = node.children.reduce((sum, c) => sum + computeSubtreeWidth(c), 0) + HGAP * (node.children.length - 1);
   node.subtreeW = Math.max(NW, childrenTotalW);
   return node.subtreeW;
 }
@@ -81,11 +65,8 @@ function computeSubtreeWidth(node: TreeNode): number {
 function assignPositions(node: TreeNode, cx: number, cy: number): void {
   node.x = cx - NW / 2;
   node.y = cy;
-
   if (node.collapsed || node.children.length === 0) return;
-
-  const totalW = node.children.reduce((sum, c) => sum + c.subtreeW, 0)
-    + HGAP * (node.children.length - 1);
+  const totalW = node.children.reduce((sum, c) => sum + c.subtreeW, 0) + HGAP * (node.children.length - 1);
   let childCx = cx - totalW / 2;
   node.children.forEach(c => {
     assignPositions(c, childCx + c.subtreeW / 2, cy + NH + VGAP);
@@ -98,28 +79,16 @@ function layoutForest(roots: TreeNode[]): { canvasW: number; canvasH: number } {
   const totalW = roots.reduce((sum, r) => sum + r.subtreeW, 0) + HGAP * (roots.length - 1);
   const canvasW = Math.max(totalW + 120, 800);
   let rootCx = (canvasW - totalW) / 2;
-  roots.forEach(r => {
-    assignPositions(r, rootCx + r.subtreeW / 2, 48);
-    rootCx += r.subtreeW + HGAP;
-  });
-
-  // Compute canvas height from deepest y
+  roots.forEach(r => { assignPositions(r, rootCx + r.subtreeW / 2, 48); rootCx += r.subtreeW + HGAP; });
   let maxY = 0;
-  const walk = (n: TreeNode) => {
-    maxY = Math.max(maxY, n.y + NH);
-    if (!n.collapsed) n.children.forEach(walk);
-  };
+  const walk = (n: TreeNode) => { maxY = Math.max(maxY, n.y + NH); if (!n.collapsed) n.children.forEach(walk); };
   roots.forEach(walk);
-
   return { canvasW, canvasH: maxY + 80 };
 }
 
 function collectNodes(roots: TreeNode[]): TreeNode[] {
   const result: TreeNode[] = [];
-  const walk = (n: TreeNode) => {
-    result.push(n);
-    if (!n.collapsed) n.children.forEach(walk);
-  };
+  const walk = (n: TreeNode) => { result.push(n); if (!n.collapsed) n.children.forEach(walk); };
   roots.forEach(walk);
   return result;
 }
@@ -128,28 +97,24 @@ function collectEdges(roots: TreeNode[]): { x1: number; y1: number; x2: number; 
   const edges: { x1: number; y1: number; x2: number; y2: number }[] = [];
   const walk = (n: TreeNode) => {
     if (n.collapsed) return;
-    n.children.forEach(c => {
-      edges.push({
-        x1: n.x + NW / 2,
-        y1: n.y + NH,
-        x2: c.x + NW / 2,
-        y2: c.y,
-      });
-      walk(c);
-    });
+    n.children.forEach(c => { edges.push({ x1: n.x + NW / 2, y1: n.y + NH, x2: c.x + NW / 2, y2: c.y }); walk(c); });
   };
   roots.forEach(walk);
   return edges;
 }
 
-/* ── Node card component ────────────────────────────── */
+/* ── NodeCard ────────────────────────────────────────── */
 const NodeCard = ({
-  node, dept, onToggle, scale,
+  node, dept, onToggle, onClick, isSelected, isDimmed, isSearchMatch, searchActive,
 }: {
   node: TreeNode;
   dept: Department | undefined;
   onToggle: () => void;
-  scale: number;
+  onClick: () => void;
+  isSelected?: boolean;
+  isDimmed?: boolean;
+  isSearchMatch?: boolean;
+  searchActive?: boolean;
 }) => {
   const p = node.profile;
   const [bg, fg] = avatarColors(p.full_name);
@@ -159,29 +124,31 @@ const NodeCard = ({
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={{ opacity: isDimmed ? 0.2 : 1, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        position: "absolute",
-        left: node.x,
-        top: node.y,
-        width: NW,
-        height: NH,
-      }}
+      style={{ position: "absolute", left: node.x, top: node.y, width: NW, height: NH }}
+      data-no-pan
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
     >
       <div
         className={cn(
-          "w-full h-full rounded-xl bg-white border transition-all duration-200 overflow-hidden",
-          "shadow-[0_1px_4px_rgba(0,27,97,0.10),0_0_0_1px_rgba(0,27,97,0.07)]",
-          "hover:shadow-[0_4px_16px_rgba(0,27,97,0.14),0_0_0_1px_rgba(0,27,97,0.10)]",
-          p.is_manager && "ring-1 ring-primary/30",
+          "w-full h-full rounded-xl bg-white border transition-all duration-200 overflow-hidden cursor-pointer",
+          isSelected
+            ? "ring-2 ring-primary shadow-[0_0_0_4px_rgba(255,174,3,0.25)] shadow-xl"
+            : searchActive && isSearchMatch
+            ? "ring-2 ring-secondary/50 shadow-md"
+            : [
+                "shadow-[0_1px_4px_rgba(0,27,97,0.10),0_0_0_1px_rgba(0,27,97,0.07)]",
+                "hover:shadow-[0_4px_16px_rgba(0,27,97,0.14),0_0_0_1.5px_rgba(0,27,97,0.12)]",
+                p.is_manager ? "ring-1 ring-primary/30" : "",
+              ].join(" ")
         )}
       >
         {/* Department color stripe */}
         <div className="h-[3px] w-full" style={{ backgroundColor: deptColor }} />
+        {isSelected && <div className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full bg-primary m-1 animate-pulse" />}
 
         <div className="px-3 py-2 flex items-center gap-2.5 h-[calc(100%-3px)]">
-          {/* Avatar */}
           <div
             className="rounded-full shrink-0 flex items-center justify-center font-bold text-[13px]"
             style={{ width: 36, height: 36, backgroundColor: bg, color: fg }}
@@ -189,7 +156,6 @@ const NodeCard = ({
             {initials(p.full_name)}
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <p className="font-display font-semibold text-[11.5px] text-secondary leading-tight truncate">
               {p.full_name}
@@ -207,7 +173,6 @@ const NodeCard = ({
             )}
           </div>
 
-          {/* Toggle */}
           {hasChildren && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggle(); }}
@@ -222,7 +187,6 @@ const NodeCard = ({
         </div>
       </div>
 
-      {/* Child count badge */}
       {hasChildren && (
         <div
           className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8.5px] font-bold border"
@@ -240,22 +204,189 @@ const NodeCard = ({
   );
 };
 
+/* ── ProfileDrawer ───────────────────────────────────── */
+const ProfileDrawer = ({
+  profile, dept, profiles, onClose,
+}: {
+  profile: Profile;
+  dept: Department | undefined;
+  profiles: Profile[];
+  onClose: () => void;
+}) => {
+  const [bg, fg] = avatarColors(profile.full_name);
+  const headerColor = dept?.color || "#001b61";
+
+  const parent = profile.hierarchy_user_id
+    ? profiles.find(p => p.user_id === profile.hierarchy_user_id) ?? null
+    : null;
+
+  const directReports = profiles.filter(p => p.hierarchy_user_id === profile.user_id);
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 bg-black/20 z-40 backdrop-blur-[1px]"
+        onClick={onClose}
+      />
+      {/* Drawer */}
+      <motion.div
+        initial={{ x: 420, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 420, opacity: 0 }}
+        transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed right-0 top-0 h-full w-[360px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden"
+        data-no-pan
+      >
+        {/* Header */}
+        <div
+          className="px-5 py-4 flex items-center gap-3.5 shrink-0"
+          style={{ background: `linear-gradient(135deg, ${headerColor}, ${headerColor}cc)` }}
+        >
+          <div
+            className="rounded-full shrink-0 flex items-center justify-center font-bold text-[16px] ring-2 ring-white/30"
+            style={{ width: 48, height: 48, backgroundColor: bg, color: fg }}
+          >
+            {initials(profile.full_name)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-display font-bold text-[16px] leading-tight truncate">
+              {profile.full_name}
+            </p>
+            <p className="text-white/70 text-[11px] mt-0.5 truncate">
+              {profile.poste || (profile.is_manager ? "Manager" : "Collaborateur")}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-colors shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto">
+
+          {/* Informations */}
+          <section className="px-5 py-4 border-b border-border/40 space-y-2.5">
+            <p className="text-[10px] uppercase tracking-[0.16em] font-bold text-muted-foreground mb-3">
+              Informations
+            </p>
+            {profile.is_manager && (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <span className="text-[11px] font-semibold text-primary">Manager</span>
+              </div>
+            )}
+            {dept && (
+              <div className="flex items-center gap-2.5 mt-2">
+                <span className="text-[22px] leading-none">{dept.icon}</span>
+                <div>
+                  <p className="text-[10.5px] text-muted-foreground">Département</p>
+                  <p className="text-[12px] font-semibold text-secondary">{dept.name}</p>
+                </div>
+              </div>
+            )}
+            {profile.service && (
+              <div className="flex items-center gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[13px] shrink-0">⚙️</div>
+                <div>
+                  <p className="text-[10.5px] text-muted-foreground">Service</p>
+                  <p className="text-[12px] font-semibold text-secondary">{profile.service}</p>
+                </div>
+              </div>
+            )}
+            {profile.category && (
+              <div className="flex items-center gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[13px] shrink-0">🏷️</div>
+                <div>
+                  <p className="text-[10.5px] text-muted-foreground">Catégorie</p>
+                  <p className="text-[12px] font-semibold text-secondary">{profile.category}</p>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Responsable direct */}
+          {parent && (
+            <section className="px-5 py-4 border-b border-border/40">
+              <p className="text-[10px] uppercase tracking-[0.16em] font-bold text-muted-foreground mb-3">
+                Responsable direct
+              </p>
+              <div className="flex items-center gap-3">
+                <div
+                  className="rounded-full flex items-center justify-center font-bold text-[13px] shrink-0"
+                  style={{ width: 40, height: 40, backgroundColor: avatarColors(parent.full_name)[0], color: avatarColors(parent.full_name)[1] }}
+                >
+                  {initials(parent.full_name)}
+                </div>
+                <div>
+                  <p className="font-semibold text-[12.5px] text-secondary">{parent.full_name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {parent.poste || (parent.is_manager ? "Manager" : "Collaborateur")}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Équipe directe */}
+          {directReports.length > 0 && (
+            <section className="px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.16em] font-bold text-muted-foreground mb-3">
+                Équipe directe ({directReports.length})
+              </p>
+              <div className="space-y-2.5">
+                {directReports.map(r => (
+                  <div key={r.user_id} className="flex items-center gap-2.5">
+                    <div
+                      className="rounded-full flex items-center justify-center font-bold text-[11px] shrink-0"
+                      style={{ width: 32, height: 32, backgroundColor: avatarColors(r.full_name)[0], color: avatarColors(r.full_name)[1] }}
+                    >
+                      {initials(r.full_name)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-medium text-foreground truncate">{r.full_name}</p>
+                      {(r.poste || r.is_manager) && (
+                        <p className="text-[10.5px] text-muted-foreground truncate">
+                          {r.poste || "Manager"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </motion.div>
+    </>
+  );
+};
+
 /* ── Main component ─────────────────────────────────── */
 interface OrgChartAutoViewProps {
   profiles: Profile[];
   departments: Department[];
+  searchQuery?: string;
 }
 
-const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
+const OrgChartAutoView = ({ profiles, departments, searchQuery = "" }: OrgChartAutoViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging   = useRef(false);
+  const hasDragged   = useRef(false);
   const lastMouse    = useRef({ x: 0, y: 0 });
 
-  const [scale, setScale]   = useState(0.85);
-  const [pan, setPan]       = useState({ x: 0, y: 0 });
-  const [, forceUpdate]     = useState(0);
+  const [scale, setScale]               = useState(0.85);
+  const [pan, setPan]                   = useState({ x: 0, y: 0 });
+  const [, forceUpdate]                 = useState(0);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
 
-  // Build mutable tree (we mutate `collapsed` directly)
   const roots = useMemo(() => buildTree(profiles), [profiles]);
 
   const deptMap = useMemo(() => {
@@ -264,7 +395,6 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
     return m;
   }, [departments]);
 
-  // Recompute layout and collect nodes/edges
   const { nodes, edges, canvasW, canvasH } = useMemo(() => {
     const { canvasW, canvasH } = layoutForest(roots);
     return {
@@ -274,7 +404,22 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
       canvasH,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roots, /* forceUpdate counter via the toggle */ JSON.stringify(roots.map(r => r.collapsed))]);
+  }, [roots, JSON.stringify(roots.map(r => r.collapsed))]);
+
+  // Search: set of matching user_ids
+  const matchIds = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const q = searchQuery.toLowerCase();
+    return new Set(
+      profiles
+        .filter(p =>
+          p.full_name.toLowerCase().includes(q) ||
+          (p.poste || "").toLowerCase().includes(q) ||
+          (p.service || "").toLowerCase().includes(q)
+        )
+        .map(p => p.user_id)
+    );
+  }, [searchQuery, profiles]);
 
   // Initial fit
   useEffect(() => {
@@ -311,16 +456,23 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
   const onMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("[data-no-pan]")) return;
     isDragging.current = true;
+    hasDragged.current = false;
     lastMouse.current = { x: e.clientX, y: e.clientY };
   };
   const onMouseMove = (e: React.MouseEvent) => {
     if (!isDragging.current) return;
     const dx = e.clientX - lastMouse.current.x;
     const dy = e.clientY - lastMouse.current.y;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasDragged.current = true;
     lastMouse.current = { x: e.clientX, y: e.clientY };
     setPan(p => ({ x: p.x + dx, y: p.y + dy }));
   };
   const onMouseUp = () => { isDragging.current = false; };
+
+  const handleCanvasClick = () => {
+    if (hasDragged.current) { hasDragged.current = false; return; }
+    setSelectedProfile(null);
+  };
 
   const handleReset = useCallback(() => {
     if (!containerRef.current) return;
@@ -341,6 +493,8 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
     !p.hierarchy_user_id || !profiles.some(o => o.user_id === p.hierarchy_user_id)
   ).length;
 
+  const searchActive = searchQuery.trim().length > 0;
+
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
@@ -359,6 +513,14 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
               <div className="w-px h-3.5 bg-border" />
               <span className="text-[11px] text-amber-600">
                 <strong>{orphans}</strong> sans hiérarchie définie
+              </span>
+            </>
+          )}
+          {searchActive && matchIds && (
+            <>
+              <div className="w-px h-3.5 bg-border" />
+              <span className="text-[11px] text-secondary font-medium">
+                {matchIds.size} résultat{matchIds.size !== 1 ? "s" : ""}
               </span>
             </>
           )}
@@ -387,6 +549,7 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
+        onClick={handleCanvasClick}
       >
         <div
           style={{
@@ -398,9 +561,7 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
           }}
         >
           {/* SVG edges */}
-          <svg
-            style={{ position: "absolute", top: 0, left: 0, width: canvasW, height: canvasH, pointerEvents: "none" }}
-          >
+          <svg style={{ position: "absolute", top: 0, left: 0, width: canvasW, height: canvasH, pointerEvents: "none" }}>
             {edges.map((e, i) => {
               const midY = (e.y1 + e.y2) / 2;
               return (
@@ -417,15 +578,24 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
 
           {/* Node cards */}
           <AnimatePresence>
-            {nodes.map(node => (
-              <NodeCard
-                key={node.profile.user_id}
-                node={node}
-                dept={node.profile.department_id ? deptMap.get(node.profile.department_id) : undefined}
-                onToggle={() => toggleNode(node)}
-                scale={scale}
-              />
-            ))}
+            {nodes.map(node => {
+              const isSelected = selectedProfile?.user_id === node.profile.user_id;
+              const isSearchMatch = matchIds ? matchIds.has(node.profile.user_id) : undefined;
+              const isDimmed = searchActive && matchIds ? !matchIds.has(node.profile.user_id) : false;
+              return (
+                <NodeCard
+                  key={node.profile.user_id}
+                  node={node}
+                  dept={node.profile.department_id ? deptMap.get(node.profile.department_id) : undefined}
+                  onToggle={() => toggleNode(node)}
+                  onClick={() => setSelectedProfile(node.profile)}
+                  isSelected={isSelected}
+                  isDimmed={isDimmed}
+                  isSearchMatch={isSearchMatch}
+                  searchActive={searchActive}
+                />
+              );
+            })}
           </AnimatePresence>
         </div>
       </div>
@@ -446,6 +616,18 @@ const OrgChartAutoView = ({ profiles, departments }: OrgChartAutoViewProps) => {
           Nombre de subordonnés directs
         </span>
       </div>
+
+      {/* Profile Drawer */}
+      <AnimatePresence>
+        {selectedProfile && (
+          <ProfileDrawer
+            profile={selectedProfile}
+            dept={selectedProfile.department_id ? deptMap.get(selectedProfile.department_id) : undefined}
+            profiles={profiles}
+            onClose={() => setSelectedProfile(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
