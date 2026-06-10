@@ -22,7 +22,8 @@ export interface MissionMilestone {
   title: string;
   quarter: string;
   status: "done" | "in-progress" | "planned";
-  deadline?: string;
+  startDate?: string; // ISO date — début de la tâche Gantt
+  deadline?: string;  // ISO date — fin / échéance
   deliverables?: Deliverable[];
 }
 
@@ -54,6 +55,18 @@ export interface TimeEntry {
   comment?: string;
 }
 
+export interface ProjectGanttTask {
+  id: string;
+  title: string;
+  assignees: string[];         // full_names des collaborateurs
+  startDate: string;           // YYYY-MM-DD
+  deadline: string;            // YYYY-MM-DD
+  status: "done" | "in-progress" | "planned";
+  description?: string;
+  progress?: number;           // 0-100
+  createdAt: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -68,6 +81,8 @@ export interface Project {
   status?: string;
   createdAt?: string; // ISO date string - date de création
   isNew?: boolean; // true until first save, allows free editing
+  ganttEnabled?: boolean; // true when a Gantt diagram is activated for this project
+  ganttTasks?: ProjectGanttTask[];  // tâches créées directement depuis la page Planification
 }
 
 export const projects: Project[] = [];

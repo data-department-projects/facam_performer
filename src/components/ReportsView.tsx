@@ -39,7 +39,7 @@ const REPORT_LABELS: Record<ReportType, string> = {
 
 const REPORT_COLORS: Record<ReportType, string> = {
   weekly: "bg-blue-100 text-blue-800",
-  monthly: "bg-amber-100 text-amber-800",
+  monthly: "bg-orange-100 text-orange-800",
   semiannual: "bg-purple-100 text-purple-800",
 };
 

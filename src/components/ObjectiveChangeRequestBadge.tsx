@@ -24,7 +24,7 @@ const ObjectiveChangeRequestBadge = ({ requests }: Props) => {
     pending: {
       icon: Clock,
       label: "Modification en cours",
-      badgeClass: "bg-amber-100 text-amber-800 border-amber-300",
+      badgeClass: "bg-orange-100 text-orange-800 border-orange-300",
       detail: "Votre demande est en cours d'examen par la hiérarchie",
     },
     approved: {

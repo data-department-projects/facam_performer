@@ -10,12 +10,12 @@ const BARS = [38, 62, 48, 82, 54, 100, 68];
 
 /* ── Geometric decorations (SVG, bottom-right of each card) ── */
 const decos = [
-  /* 0 – featured: gold overlapping circles */
+  /* 0 – featured: gold overlapping circles (or sur navy) */
   <svg key={0} viewBox="0 0 140 120" fill="none">
-    <circle cx="105" cy="95" r="62" fill="rgba(255,174,3,0.18)" />
-    <circle cx="82" cy="82" r="44" fill="rgba(255,174,3,0.28)" />
-    <circle cx="112" cy="62" r="30" fill="rgba(255,174,3,0.42)" />
-    <circle cx="90" cy="90" r="18" fill="#ffae03" />
+    <circle cx="105" cy="95" r="62" fill="rgba(255,174,3,0.12)" />
+    <circle cx="82" cy="82" r="44" fill="rgba(255,174,3,0.22)" />
+    <circle cx="112" cy="62" r="30" fill="rgba(255,174,3,0.38)" />
+    <circle cx="90" cy="90" r="18" fill="#FFAE03" />
   </svg>,
   /* 1 – orgchart: navy concentric circles */
   <svg key={1} viewBox="0 0 140 120" fill="none">
@@ -45,12 +45,12 @@ const decos = [
     <rect x="64" y="95" width="62" height="12" rx="6" fill="rgba(20,184,166,0.40)" />
     <circle cx="105" cy="48" r="22" fill="rgba(20,184,166,0.10)" />
   </svg>,
-  /* 5 – projets: amber stacked blocks */
+  /* 5 – projets: blue stacked blocks */
   <svg key={5} viewBox="0 0 140 120" fill="none">
-    <rect x="52" y="72" width="76" height="34" rx="10" fill="rgba(245,158,11,0.10)" />
-    <rect x="62" y="58" width="62" height="26" rx="9" fill="rgba(245,158,11,0.20)" />
-    <rect x="74" y="46" width="50" height="22" rx="8" fill="rgba(245,158,11,0.36)" />
-    <rect x="84" y="36" width="40" height="18" rx="7" fill="rgba(245,158,11,0.60)" />
+    <rect x="52" y="72" width="76" height="34" rx="10" fill="rgba(26,95,186,0.10)" />
+    <rect x="62" y="58" width="62" height="26" rx="9" fill="rgba(26,95,186,0.20)" />
+    <rect x="74" y="46" width="50" height="22" rx="8" fill="rgba(26,95,186,0.36)" />
+    <rect x="84" y="36" width="40" height="18" rx="7" fill="rgba(26,95,186,0.60)" />
   </svg>,
 ];
 
@@ -71,6 +71,7 @@ const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
   const { profile, isAdmin } = useAuth();
   const isSimpleCollaborator = !isAdmin && !profile?.is_manager;
 
+  //Définiition de la salutation en fonction de l'heure 
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return "Bonjour";
@@ -121,7 +122,7 @@ const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
                 fill="none"
                 preserveAspectRatio="none"
               >
-                <path d="M4 10 Q130 1 256 10" stroke="#ffae03" strokeWidth="3" strokeLinecap="round" />
+                <path d="M4 10 Q130 1 256 10" stroke="#FFAE03" strokeWidth="3" strokeLinecap="round" />
               </svg>
             </div>
             <h1 className="font-display text-[clamp(2.6rem,5vw,4.2rem)] font-bold leading-[1.06] tracking-tight text-secondary">
@@ -137,7 +138,7 @@ const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
             className="text-muted-foreground text-[15px] leading-[1.75] max-w-[400px]"
           >
             Les décisions stratégiques s'appuient sur des données fiables et des analyses en
-            temps réel — pas seulement sur l'intuition. FACAM PERFORMER vous donne les outils
+            temps réel pas seulement sur l'intuition. FACAM PERFORMER vous donne les outils
             pour piloter votre organisation avec clarté et précision.
           </motion.p>
 
@@ -215,7 +216,7 @@ const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
                   animate={{ scaleY: 1 }}
                   transition={{ delay: 0.72 + i * 0.05, duration: 0.28, ease: "easeOut" }}
                   className="flex-1 rounded-t-[3px] origin-bottom"
-                  style={{ height: `${h}%`, backgroundColor: i === 5 ? "#ffae03" : "rgba(0,42,110,0.18)" }}
+                  style={{ height: `${h}%`, backgroundColor: i === 5 ? "#FFAE03" : "rgba(0,27,97,0.18)" }}
                 />
               ))}
             </div>
@@ -320,7 +321,7 @@ const AccueilPage = ({ onNavigate }: AccueilPageProps) => {
                     >
                       <Icon
                         className="w-5 h-5"
-                        style={{ color: featured ? "#ffae03" : iconColor }}
+                        style={{ color: featured ? "#ffffff" : iconColor }}
                       />
                     </div>
                   </div>

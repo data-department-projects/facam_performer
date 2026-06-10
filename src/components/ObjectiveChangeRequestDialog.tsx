@@ -208,7 +208,7 @@ const ObjectiveChangeRequestDialog = ({ open, onOpenChange, objective, onSuccess
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <AlertTriangle className="w-4 h-4 text-orange-500" />
             Demande de modification
           </DialogTitle>
           <DialogDescription className="text-xs">

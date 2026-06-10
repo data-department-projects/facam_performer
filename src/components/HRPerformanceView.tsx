@@ -412,7 +412,7 @@ const HRPerformanceView = () => {
                           </Button>
                         )}
                         {!canEditOwn(obj) && obj.status !== "draft" && obj.status !== "pending_validation" && (
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-amber-600" title="Demander modification" onClick={() => setChangeRequestObj(obj)}>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-orange-500" title="Demander modification" onClick={() => setChangeRequestObj(obj)}>
                             <MessageSquarePlus className="w-3 h-3" /> Demander
                           </Button>
                         )}
@@ -796,7 +796,7 @@ const HRPerformanceView = () => {
                         )}
                         {/* Request modification/deletion for validated+ objectives (own or subordinate's) */}
                         {(obj.user_id === user?.id || (canManage && !canEdit(obj))) && ["validated", "s1_review", "s2_evaluation", "completed"].includes(obj.status) && (
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-amber-600" title="Demander modification" onClick={() => setChangeRequestObj(obj)}>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-orange-500" title="Demander modification" onClick={() => setChangeRequestObj(obj)}>
                             <MessageSquarePlus className="w-3 h-3" /> Demander
                           </Button>
                         )}

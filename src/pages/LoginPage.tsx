@@ -40,11 +40,11 @@ const LoginPage = () => {
       {/* ── Blobs décoratifs ── */}
       <div
         className="absolute -top-40 -left-40 w-[600px] h-[600px] opacity-[0.12] pointer-events-none"
-        style={{ background: "radial-gradient(circle, #ffae03, transparent 65%)", borderRadius: "60% 40% 55% 45% / 50% 60% 40% 50%" }}
+        style={{ background: "radial-gradient(circle, #FFAE03, transparent 65%)", borderRadius: "60% 40% 55% 45% / 50% 60% 40% 50%" }}
       />
       <div
         className="absolute -bottom-40 -right-40 w-[500px] h-[500px] opacity-[0.10] pointer-events-none"
-        style={{ background: "radial-gradient(circle, #ffae03, transparent 65%)", borderRadius: "45% 55% 40% 60% / 60% 45% 55% 40%" }}
+        style={{ background: "radial-gradient(circle, #FFAE03, transparent 65%)", borderRadius: "45% 55% 40% 60% / 60% 45% 55% 40%" }}
       />
 
       {/* ── Carte centrale ── */}
@@ -83,7 +83,7 @@ const LoginPage = () => {
             >
               Connexion
             </h1>
-            <div className="mx-auto mt-3 w-10 h-[2px] rounded-full" style={{ backgroundColor: "#ffae03" }} />
+            <div className="mx-auto mt-3 w-10 h-[2px] rounded-full" style={{ backgroundColor: "#FFAE03" }} />
           </div>
 
           {/* Formulaire */}
@@ -104,7 +104,7 @@ const LoginPage = () => {
                   color:         "#1e293b",
                   caretColor:    "#001b61",
                 }}
-                onFocus={(e) => (e.currentTarget.style.border = "1.5px solid #ffae03")}
+                onFocus={(e) => (e.currentTarget.style.border = "1.5px solid #1b48bb")}
                 onBlur={(e)  => (e.currentTarget.style.border = "1.5px solid rgba(255,255,255,0.25)")}
               />
               <Mail
@@ -128,7 +128,7 @@ const LoginPage = () => {
                   color:      "#1e293b",
                   caretColor: "#001b61",
                 }}
-                onFocus={(e) => (e.currentTarget.style.border = "1.5px solid #ffae03")}
+                onFocus={(e) => (e.currentTarget.style.border = "1.5px solid #1b48bb")}
                 onBlur={(e)  => (e.currentTarget.style.border = "1.5px solid rgba(255,255,255,0.25)")}
               />
               <Lock
@@ -155,10 +155,10 @@ const LoginPage = () => {
               disabled={loading}
               className="w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-[1px] disabled:opacity-70"
               style={{
-                background:  "linear-gradient(135deg, #001b61 0%, #002b9a 100%)",
-                color:       "#ffffff",
-                boxShadow:   "0 4px 20px rgba(0,27,97,0.55)",
-                border:      "1px solid rgba(255,255,255,0.10)",
+                background:  "#FFAE03",
+                color:       "#001B61",
+                boxShadow:   "0 4px 20px rgba(255,174,3,0.45)",
+                border:      "none",
               }}
             >
               {loading ? (

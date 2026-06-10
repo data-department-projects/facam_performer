@@ -20,7 +20,7 @@ export type ViewType =
 "accueil" | "dashboard" | "roadmap" | "orgchart" | "comites" |
 "admin" | "gantt" | "projects" |
 "timeentry" | "etpadmin" | "collaborators" |
-"hrperformance" | "projectscomites" | "dept_objectives" | "badgemanagement" | "actions" |
+"hrperformance" | "projectscomites" | "badgemanagement" | "actions" |
 "guide" | "report_error" | "profil";
 
 interface NavItem {
@@ -37,7 +37,6 @@ const NAV_ITEMS: NavItem[] = [
 { id: "timeentry", label: "Week Planner", icon: Clock, moduleId: "timeentry" },
 { id: "gantt", label: "Planification", icon: GanttChart, moduleId: "gantt" },
 { id: "hrperformance", label: "Objectifs", icon: Target, moduleId: "hrperformance" },
-{ id: "dept_objectives", label: "Obj. Départements", icon: Building2, moduleId: "dept_objectives" },
 { id: "orgchart", label: "Organigramme", icon: Network, moduleId: "orgchart" },
 { id: "dashboard", label: "Tableau de bord", icon: BarChart3, moduleId: "dashboard" },
 { id: "projectscomites", label: "Projets & Comités", icon: FolderKanban, moduleId: "projectscomites" },
@@ -195,7 +194,6 @@ const AppSidebar = ({ currentView, onViewChange, onNavigateToAdminTab }: AppSide
           layout
           className="relative"
         >
-          <div className="absolute inset-0 bg-primary/10 blur-xl rounded-full" />
           <img
             src={logoImg}
             alt="FACAM STAIRWAY"
@@ -447,7 +445,7 @@ const AppSidebar = ({ currentView, onViewChange, onNavigateToAdminTab }: AppSide
                     {(profile.full_name || profile.email || "?").charAt(0).toUpperCase()}
                   </span>
                   {mustChangePassword && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 border-2 border-white" title="Mot de passe à changer" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-orange-400 border-2 border-white" title="Mot de passe à changer" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -474,13 +472,13 @@ const AppSidebar = ({ currentView, onViewChange, onNavigateToAdminTab }: AppSide
             trigger={
               <button
                 className={cn(
-                  "w-full flex items-center gap-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border border-amber-300/60 bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-2"
+                  "w-full flex items-center gap-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border border-orange-300/60 bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-2"
                 )}
                 title={collapsed ? "Changer mot de passe" : undefined}
               >
-                <KeyRound className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                <KeyRound className="w-3.5 h-3.5 shrink-0 text-orange-500" />
                 {!collapsed && <span className="truncate">Changer mot de passe</span>}
-                {!collapsed && <span className="ml-auto w-2 h-2 rounded-full bg-amber-400 shrink-0" />}
+                {!collapsed && <span className="ml-auto w-2 h-2 rounded-full bg-orange-400 shrink-0" />}
               </button>
             }
           />

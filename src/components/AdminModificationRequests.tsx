@@ -104,7 +104,7 @@ const AdminModificationRequests = () => {
   };
 
   const statusConfig = {
-    pending: { label: "En attente", icon: Clock, color: "bg-amber-100 text-amber-800" },
+    pending: { label: "En attente", icon: Clock, color: "bg-orange-100 text-orange-800" },
     approved: { label: "Approuvée", icon: CheckCircle2, color: "bg-green-100 text-green-800" },
     rejected: { label: "Refusée", icon: XCircle, color: "bg-red-100 text-red-800" },
   };
@@ -117,7 +117,7 @@ const AdminModificationRequests = () => {
         <h2 className="font-display font-bold text-xl">Demandes de modification</h2>
         <p className="text-sm text-muted-foreground">
           Validez ou refusez les demandes de modification des responsables
-          {pendingCount > 0 && <Badge className="ml-2 bg-amber-100 text-amber-800">{pendingCount} en attente</Badge>}
+          {pendingCount > 0 && <Badge className="ml-2 bg-orange-100 text-orange-800">{pendingCount} en attente</Badge>}
         </p>
       </div>
 
@@ -136,7 +136,7 @@ const AdminModificationRequests = () => {
             const cfg = statusConfig[req.status];
             const StatusIcon = cfg.icon;
             return (
-              <Card key={req.id} className={`transition-shadow ${req.status === "pending" ? "border-amber-300" : ""}`}>
+              <Card key={req.id} className={`transition-shadow ${req.status === "pending" ? "border-orange-300" : ""}`}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 space-y-1">

@@ -15,6 +15,7 @@ export function handleError(
 ): boolean {
   if (!error) return false;
   toast.error(userMessage);
+  /* c8 ignore next -- branche prod (isDev=false) non accessible en env test */
   if (isDev) console.error("[supabase]", error);
   return true;
 }

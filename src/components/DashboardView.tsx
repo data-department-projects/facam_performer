@@ -27,13 +27,18 @@ import { parseISO, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import WeeklyAnalysisCard from "@/components/WeeklyAnalysisCard";
 import PersonalDashboard from "@/components/PersonalDashboard";
+import ManagerProjectDashboard from "@/components/ManagerProjectDashboard";
 
-const DashboardView = () => {
+interface DashboardViewProps {
+  onNavigateToGantt?: () => void;
+}
+
+const DashboardView = ({ onNavigateToGantt }: DashboardViewProps = {}) => {
   const { departments } = useDepartments();
   const { projects } = useProjects();
   const { committees } = useCommittees();
   const { entries: timeEntries } = useTimeTracking();
-  const { isAdmin, allowedModules } = useAuth();
+  const { isAdmin, allowedModules, profile } = useAuth();
 
   // Salary data + expenses for cost dashboard
   const [salaryMap, setSalaryMap] = useState<Record<string, number | null>>({});
@@ -190,7 +195,10 @@ const DashboardView = () => {
     try { return format(parseISO(d), "dd MMM yyyy", { locale: fr }); } catch { return d; }
   };
 
-  // Non-admin users get a personalized dashboard
+  // Route by role
+  if (!isAdmin && profile?.is_manager) {
+    return <ManagerProjectDashboard onNavigateToGantt={onNavigateToGantt} />;
+  }
   if (!isAdmin) {
     return <PersonalDashboard />;
   }

@@ -17,7 +17,7 @@ export const STATUS_LABELS: Record<ObjectiveStatus, string> = {
 
 export const STATUS_COLORS: Record<ObjectiveStatus, string> = {
   draft:               "bg-muted text-muted-foreground",
-  pending_validation:  "bg-yellow-100 text-yellow-800 border-yellow-300",
+  pending_validation:  "bg-orange-100 text-orange-800 border-orange-300",
   validated:           "bg-blue-100 text-blue-800 border-blue-300",
   s1_review:           "bg-purple-100 text-purple-800 border-purple-300",
   s2_evaluation:       "bg-orange-100 text-orange-800 border-orange-300",

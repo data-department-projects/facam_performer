@@ -4,10 +4,10 @@ import { FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#ffae03";
+const GOLD = "#FFAE03";
 const GOLD_LIGHT = "#ffc247";
 const NAVY = "#001b61";
-const NAVY_LIGHT = "#002a6e";
+const NAVY_LIGHT = "#1b3a8f";
 const CREAM = "#f0f4fa";
 
 const LOGO_URL = `${window.location.origin}/facam_stairway-bleu.png`;

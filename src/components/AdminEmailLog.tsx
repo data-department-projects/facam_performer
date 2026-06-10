@@ -20,7 +20,7 @@ type EmailLog = {
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; color: string }> = {
   sent: { label: "Envoyé", variant: "default", color: "text-green-600" },
-  pending: { label: "En attente", variant: "secondary", color: "text-yellow-600" },
+  pending: { label: "En attente", variant: "secondary", color: "text-orange-600" },
   failed: { label: "Échoué", variant: "destructive", color: "text-red-600" },
   dlq: { label: "Échoué (DLQ)", variant: "destructive", color: "text-red-700" },
   suppressed: { label: "Supprimé", variant: "outline", color: "text-orange-600" },

@@ -25,7 +25,6 @@ const TimeEntriesList = lazy(() => import("@/components/TimeEntriesList"));
 const ManagerWeeklyValidation = lazy(() => import("@/components/ManagerWeeklyValidation"));
 const AdminTimeAnalytics = lazy(() => import("@/components/AdminTimeAnalytics"));
 const HRPerformanceView = lazy(() => import("@/components/HRPerformanceView"));
-const DeptObjectivesView = lazy(() => import("@/components/DeptObjectivesView"));
 const BadgeManagement = lazy(() => import("@/components/BadgeManagement"));
 const ModuleOverlayRenderer = lazy(() => import("@/components/ModuleOverlayRenderer"));
 const UserManual = lazy(() => import("@/components/UserManual"));
@@ -70,7 +69,6 @@ const Index = () => {
   "projectscomites",
   "timeentry",
   "hrperformance",
-  "dept_objectives",
   "admin",
   "etpadmin",
   "badgemanagement",
@@ -145,7 +143,6 @@ const Index = () => {
     timeentry: { title: "Saisie du temps", subtitle: "Planification hebdomadaire et suivi des heures" },
     etpadmin: { title: "Suivi ETP — Vue Administrateur", subtitle: "Coûts, durées, temps passé et suivi des saisies" },
     hrperformance: { title: "Gestion des Objectifs", subtitle: "Définition, validation et évaluation des objectifs annuels" },
-    dept_objectives: { title: "Objectifs Départementaux", subtitle: "Suivi et évaluation des objectifs par département" },
     badgemanagement: { title: "Gestion de temps", subtitle: "Suivi des heures d'arrivée et de départ par badge" },
     actions: { title: "Actions à traiter", subtitle: "Validations, demandes et retards de vos collaborateurs" },
     guide: { title: "Guide d'utilisation", subtitle: "Procédures et bonnes pratiques de la plateforme" },
@@ -160,7 +157,7 @@ const Index = () => {
     const content = (() => {
       switch (activeView) {
         case "accueil":return <AccueilPage onNavigate={(v) => { setAdminInitialTab(undefined); setMainView(v as ViewType); }} />;
-        case "dashboard":return <DashboardView />;
+        case "dashboard":return <DashboardView onNavigateToGantt={() => setMainView("gantt")} />;
 
         case "projectscomites":return (
             <ProjectsAndCommitteesView
@@ -211,7 +208,6 @@ const Index = () => {
           }
         case "etpadmin":return <AdminTimeAnalytics />;
         case "hrperformance":return <HRPerformanceView />;
-        case "dept_objectives":return <DeptObjectivesView />;
         case "badgemanagement":return <BadgeManagement />;
         case "guide":return <UserManual />;
         case "report_error":return <ReportBug />;
@@ -261,14 +257,14 @@ const Index = () => {
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden mb-4"
               >
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
-                  <KeyRound className="w-4 h-4 text-amber-500 shrink-0" />
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-800">
+                  <KeyRound className="w-4 h-4 text-orange-500 shrink-0" />
                   <p className="text-[12px] font-medium flex-1">
                     Votre mot de passe temporaire n'a pas encore été modifié. Nous recommandons de le changer pour sécuriser votre compte.
                   </p>
                   <PasswordChangeDialog
                     trigger={
-                      <Button size="sm" variant="outline" className="shrink-0 h-7 text-[11px] border-amber-300 text-amber-700 hover:bg-amber-100 hover:text-amber-900 gap-1.5">
+                      <Button size="sm" variant="outline" className="shrink-0 h-7 text-[11px] border-orange-300 text-orange-700 hover:bg-orange-100 hover:text-orange-900 gap-1.5">
                         <KeyRound className="w-3 h-3" />
                         Changer maintenant
                       </Button>
@@ -276,7 +272,7 @@ const Index = () => {
                   />
                   <button
                     onClick={() => setPwdBannerDismissed(true)}
-                    className="p-1 rounded hover:bg-amber-100 text-amber-400 hover:text-amber-600 transition-colors shrink-0"
+                    className="p-1 rounded hover:bg-orange-100 text-orange-400 hover:text-orange-600 transition-colors shrink-0"
                     title="Masquer"
                   >
                     <X className="w-3.5 h-3.5" />

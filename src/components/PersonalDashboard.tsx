@@ -230,7 +230,7 @@ const PersonalDashboard = () => {
             <circle cx="140" cy="100" r="80" fill="white" />
             <circle cx="115" cy="75" r="56" fill="white" />
             <circle cx="145" cy="45" r="38" fill="white" />
-            <circle cx="120" cy="95" r="22" fill="#ffae03" />
+            <circle cx="120" cy="95" r="22" fill="#FFAE03" />
           </svg>
 
           <CardContent className="p-5 relative z-10">
