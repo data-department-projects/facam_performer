@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  X, Plus, Trash2, Save, Upload, Download, FileSpreadsheet,
-  User, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp,
+  X, Save, Upload, Download, FileSpreadsheet,
+  AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
