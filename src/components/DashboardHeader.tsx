@@ -28,7 +28,7 @@ const DashboardHeader = ({ title, subtitle, stats }: DashboardHeaderProps) => {
               {title && (
                 <div className="flex items-center gap-2.5">
                   <div className="w-1 h-5 rounded-full bg-primary" />
-                  <h2 className="font-display font-semibold text-lg tracking-tight text-gradient-gold">{title}</h2>
+                  <h2 className="font-display font-semibold text-lg tracking-tight text-secondary">{title}</h2>
                 </div>
               )}
               {subtitle && <p className="text-[13px] text-muted-foreground/70 mt-0.5 ml-3.5">{subtitle}</p>}

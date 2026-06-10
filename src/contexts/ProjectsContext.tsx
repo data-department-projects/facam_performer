@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { preloadAllData } from "@/hooks/useDataPreloader";
-import type { Project, ProjectMilestone, Deliverable } from "@/data/projects";
+import type { Project, ProjectMilestone, MissionMilestone, CollaboratorMission, ProjectGanttTask, Deliverable } from "@/data/projects";
 
 interface ProjectsContextType {
   projects:              Project[];
@@ -11,6 +11,16 @@ interface ProjectsContextType {
   updateMilestoneDeadline: (projectId: string, milestoneId: string, deadline: string) => void;
   updateMilestoneStatus:   (projectId: string, milestoneId: string, status: ProjectMilestone["status"]) => void;
   submitDeliverable:       (projectId: string, milestoneId: string, submittedBy: string, link: string) => { success: boolean; error?: string };
+  updateCollaboratorMilestoneStatus: (projectId: string, collabName: string, missionId: string, milestoneId: string, status: MissionMilestone["status"]) => void;
+  addCollaboratorMilestone:    (projectId: string, collabName: string, missionId: string, milestone: MissionMilestone) => void;
+  removeCollaboratorMilestone: (projectId: string, collabName: string, missionId: string, milestoneId: string) => void;
+  addCollaboratorMission:    (projectId: string, collabName: string, mission: CollaboratorMission) => void;
+  removeCollaboratorMission: (projectId: string, collabName: string, missionId: string) => void;
+  updateCollaboratorMilestone: (projectId: string, collabName: string, missionId: string, milestoneId: string, updates: Partial<MissionMilestone>) => void;
+  addGanttTask:    (projectId: string, task: ProjectGanttTask) => void;
+  updateGanttTask: (projectId: string, task: ProjectGanttTask) => void;
+  removeGanttTask: (projectId: string, taskId: string) => void;
+  importGanttTasks:(projectId: string, tasks: ProjectGanttTask[]) => void;
 }
 
 const ProjectsContext = createContext<ProjectsContextType | null>(null);
@@ -167,6 +177,220 @@ export const ProjectsProvider = ({ children }: { children: ReactNode }) => {
     return result;
   }, []);
 
+  const updateCollaboratorMilestoneStatus = useCallback((
+    projectId: string,
+    collabName: string,
+    missionId: string,
+    milestoneId: string,
+    status: MissionMilestone["status"]
+  ): void => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id !== projectId) return p;
+        const updated: Project = {
+          ...p,
+          collaborators: p.collaborators.map(c => {
+            if (c.name !== collabName) return c;
+            return {
+              ...c,
+              missions: (c.missions ?? []).map(m => {
+                if (m.id !== missionId) return m;
+                return {
+                  ...m,
+                  milestones: m.milestones.map(ms =>
+                    ms.id === milestoneId ? { ...ms, status } : ms
+                  ),
+                };
+              }),
+            };
+          }),
+        };
+        saveProject(updated);
+        return updated;
+      })
+    );
+  }, []);
+
+  const addCollaboratorMilestone = useCallback((
+    projectId: string,
+    collabName: string,
+    missionId: string,
+    milestone: MissionMilestone
+  ): void => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id !== projectId) return p;
+        const updated: Project = {
+          ...p,
+          collaborators: p.collaborators.map(c => {
+            if (c.name !== collabName) return c;
+            return {
+              ...c,
+              missions: (c.missions ?? []).map(m => {
+                if (m.id !== missionId) return m;
+                return { ...m, milestones: [...m.milestones, milestone] };
+              }),
+            };
+          }),
+        };
+        saveProject(updated);
+        return updated;
+      })
+    );
+  }, []);
+
+  const removeCollaboratorMilestone = useCallback((
+    projectId: string,
+    collabName: string,
+    missionId: string,
+    milestoneId: string
+  ): void => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id !== projectId) return p;
+        const updated: Project = {
+          ...p,
+          collaborators: p.collaborators.map(c => {
+            if (c.name !== collabName) return c;
+            return {
+              ...c,
+              missions: (c.missions ?? []).map(m => {
+                if (m.id !== missionId) return m;
+                return {
+                  ...m,
+                  milestones: m.milestones.filter(ms => ms.id !== milestoneId),
+                };
+              }),
+            };
+          }),
+        };
+        saveProject(updated);
+        return updated;
+      })
+    );
+  }, []);
+
+  const updateCollaboratorMilestone = useCallback((
+    projectId: string,
+    collabName: string,
+    missionId: string,
+    milestoneId: string,
+    updates: Partial<MissionMilestone>
+  ): void => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id !== projectId) return p;
+        const updated: Project = {
+          ...p,
+          collaborators: p.collaborators.map(c => {
+            if (c.name !== collabName) return c;
+            return {
+              ...c,
+              missions: (c.missions ?? []).map(m => {
+                if (m.id !== missionId) return m;
+                return {
+                  ...m,
+                  milestones: m.milestones.map(ms =>
+                    ms.id === milestoneId ? { ...ms, ...updates } : ms
+                  ),
+                };
+              }),
+            };
+          }),
+        };
+        saveProject(updated);
+        return updated;
+      })
+    );
+  }, []);
+
+  const addCollaboratorMission = useCallback((
+    projectId: string,
+    collabName: string,
+    mission: CollaboratorMission
+  ): void => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id !== projectId) return p;
+        const updated: Project = {
+          ...p,
+          collaborators: p.collaborators.map(c => {
+            if (c.name !== collabName) return c;
+            return { ...c, missions: [...(c.missions ?? []), mission] };
+          }),
+        };
+        saveProject(updated);
+        return updated;
+      })
+    );
+  }, []);
+
+  const removeCollaboratorMission = useCallback((
+    projectId: string,
+    collabName: string,
+    missionId: string
+  ): void => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id !== projectId) return p;
+        const updated: Project = {
+          ...p,
+          collaborators: p.collaborators.map(c => {
+            if (c.name !== collabName) return c;
+            return { ...c, missions: (c.missions ?? []).filter(m => m.id !== missionId) };
+          }),
+        };
+        saveProject(updated);
+        return updated;
+      })
+    );
+  }, []);
+
+  const addGanttTask = useCallback((projectId: string, task: ProjectGanttTask): void => {
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+      const updated: Project = { ...p, ganttTasks: [...(p.ganttTasks ?? []), task] };
+      saveProject(updated);
+      return updated;
+    }));
+  }, []);
+
+  const updateGanttTask = useCallback((projectId: string, task: ProjectGanttTask): void => {
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+      const updated: Project = {
+        ...p,
+        ganttTasks: (p.ganttTasks ?? []).map(t => t.id === task.id ? task : t),
+      };
+      saveProject(updated);
+      return updated;
+    }));
+  }, []);
+
+  const removeGanttTask = useCallback((projectId: string, taskId: string): void => {
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+      const updated: Project = {
+        ...p,
+        ganttTasks: (p.ganttTasks ?? []).filter(t => t.id !== taskId),
+      };
+      saveProject(updated);
+      return updated;
+    }));
+  }, []);
+
+  const importGanttTasks = useCallback((projectId: string, tasks: ProjectGanttTask[]): void => {
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+      const updated: Project = {
+        ...p,
+        ganttTasks: [...(p.ganttTasks ?? []), ...tasks],
+      };
+      saveProject(updated);
+      return updated;
+    }));
+  }, []);
+
   return (
     <ProjectsContext.Provider value={{
       projects,
@@ -176,6 +400,16 @@ export const ProjectsProvider = ({ children }: { children: ReactNode }) => {
       updateMilestoneDeadline,
       updateMilestoneStatus,
       submitDeliverable,
+      updateCollaboratorMilestoneStatus,
+      addCollaboratorMilestone,
+      removeCollaboratorMilestone,
+      addCollaboratorMission,
+      removeCollaboratorMission,
+      updateCollaboratorMilestone,
+      addGanttTask,
+      updateGanttTask,
+      removeGanttTask,
+      importGanttTasks,
     }}>
       {children}
     </ProjectsContext.Provider>

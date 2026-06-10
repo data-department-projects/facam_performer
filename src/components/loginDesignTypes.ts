@@ -140,9 +140,9 @@ export const DEFAULT_SETTINGS: LoginDesignSettings = {
   leftPanelBg: "#001b61",
   leftPanelText: "#ffffff",
   rightPanelBg: "#ffffff",
-  buttonColor: "#ffae03",
-  buttonTextColor: "#001b61",
-  accentColor: "#ffae03",
+  buttonColor: "#FFAE03",
+  buttonTextColor: "#001B61",
+  accentColor: "#FFAE03",
   logoUrl: "/facam_stairway-bleu.png",
   leftIconUrl: "/facam_stairway-blanc.png",
   backgroundImageUrl: "",
@@ -175,7 +175,7 @@ export const FONT_OPTIONS = [
 ];
 
 export const COLOR_PRESETS = [
-  { label: "FACAM Stairway", leftBg: "#001b61", leftText: "#ffffff", buttonColor: "#ffae03", accentColor: "#ffae03" },
+  { label: "FACAM Stairway", leftBg: "#001b61", leftText: "#ffffff", buttonColor: "#FFAE03", accentColor: "#FFAE03" },
   { label: "Bleu Royal", leftBg: "#1e3a5f", leftText: "#e8f0fe", buttonColor: "#2563eb", accentColor: "#3b82f6" },
   { label: "Vert Émeraude", leftBg: "#064e3b", leftText: "#d1fae5", buttonColor: "#059669", accentColor: "#10b981" },
   { label: "Bordeaux", leftBg: "#450a0a", leftText: "#fef2f2", buttonColor: "#991b1b", accentColor: "#dc2626" },

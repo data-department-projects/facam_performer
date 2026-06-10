@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import ProjectsView from "@/components/ProjectsView";
 import CommitteesView from "@/components/CommitteesView";
+import CollaboratorProjectsView from "@/components/CollaboratorProjectsView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderKanban, Users2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   initialProjectId?: string | null;
@@ -10,11 +12,14 @@ interface Props {
 }
 
 const ProjectsAndCommitteesView = ({ initialProjectId, onNavigateToGantt }: Props) => {
+  const { isAdmin, profile } = useAuth();
   const [filter, setFilter] = useState<"projects" | "committees">("projects");
 
   useEffect(() => {
     if (initialProjectId) setFilter("projects");
   }, [initialProjectId]);
+
+  const isSimpleCollaborator = !isAdmin && !profile?.is_manager;
 
   return (
     <div className="space-y-6">
@@ -31,7 +36,9 @@ const ProjectsAndCommitteesView = ({ initialProjectId, onNavigateToGantt }: Prop
         </TabsList>
 
         <TabsContent value="projects" className="mt-4">
-          <ProjectsView initialExpandedId={initialProjectId} onNavigateToGantt={onNavigateToGantt} />
+          {isSimpleCollaborator
+            ? <CollaboratorProjectsView onNavigateToGantt={onNavigateToGantt} />
+            : <ProjectsView initialExpandedId={initialProjectId} onNavigateToGantt={onNavigateToGantt} />}
         </TabsContent>
         <TabsContent value="committees" className="mt-4">
           <CommitteesView />

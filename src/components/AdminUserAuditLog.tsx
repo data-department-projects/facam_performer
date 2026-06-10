@@ -17,7 +17,7 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   user_created: { label: "Création", color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
   user_deleted: { label: "Suppression", color: "bg-destructive/10 text-destructive border-destructive/20" },
   user_edited: { label: "Modification", color: "bg-primary/10 text-primary border-primary/20" },
-  password_reset: { label: "Réinit. MDP", color: "bg-amber-500/10 text-amber-700 border-amber-200" },
+  password_reset: { label: "Réinit. MDP", color: "bg-orange-500/10 text-orange-700 border-orange-200" },
   user_banned: { label: "Désactivation", color: "bg-destructive/10 text-destructive border-destructive/20" },
   user_unbanned: { label: "Réactivation", color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
   invite_generated: { label: "Invitation", color: "bg-blue-500/10 text-blue-700 border-blue-200" },

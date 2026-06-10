@@ -451,7 +451,7 @@ const TimeEntryForm = ({ todoRefreshKey = 0, onTodoCompleted }: { todoRefreshKey
           <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Général</div>
           <SelectItem value={REUNION_ID}>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full shrink-0 bg-amber-500" />
+              <div className="w-2 h-2 rounded-full shrink-0 bg-orange-500" />
               <span>Réunion</span>
             </div>
           </SelectItem>

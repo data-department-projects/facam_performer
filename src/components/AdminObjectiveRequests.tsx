@@ -188,7 +188,7 @@ const AdminObjectiveRequests = () => {
   };
 
   const statusConfig: Record<string, { label: string; icon: LucideIcon; color: string }> = {
-    pending: { label: "En attente", icon: Clock, color: "bg-amber-100 text-amber-800" },
+    pending: { label: "En attente", icon: Clock, color: "bg-orange-100 text-orange-800" },
     approved: { label: "Approuvée", icon: CheckCircle2, color: "bg-green-100 text-green-800" },
     rejected: { label: "Refusée", icon: XCircle, color: "bg-red-100 text-red-800" },
   };
@@ -201,7 +201,7 @@ const AdminObjectiveRequests = () => {
         <h2 className="font-display font-bold text-xl">Demandes de modification d'objectifs</h2>
         <p className="text-sm text-muted-foreground">
           Validez ou refusez les demandes des collaborateurs
-          {pendingCount > 0 && <Badge className="ml-2 bg-amber-100 text-amber-800">{pendingCount} à traiter</Badge>}
+          {pendingCount > 0 && <Badge className="ml-2 bg-orange-100 text-orange-800">{pendingCount} à traiter</Badge>}
         </p>
       </div>
 
@@ -228,7 +228,7 @@ const AdminObjectiveRequests = () => {
             })();
 
             return (
-              <Card key={group.key} className={`transition-shadow ${canAct ? "border-amber-300" : ""}`}>
+              <Card key={group.key} className={`transition-shadow ${canAct ? "border-orange-300" : ""}`}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 space-y-2">

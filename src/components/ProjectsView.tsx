@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, ChevronDown, ChevronRight, FolderKanban, Lock, CalendarIcon, Users, Link2, Send, AlertTriangle, ShieldAlert, GanttChart, Pencil } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, FolderKanban, Lock, CalendarIcon, Users, Send, ShieldAlert, GanttChart, Pencil, BarChart3 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
@@ -353,6 +354,11 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
                     <div className="flex items-center gap-2">
                       <p className="font-display font-bold text-sm truncate">{proj.name}</p>
                       {proj.isNew && <Badge className="text-[9px] bg-green-100 text-green-800">Nouveau</Badge>}
+                      {proj.ganttEnabled && (
+                        <Badge variant="outline" className="text-[9px] gap-1 border-primary/40 text-primary bg-primary/5">
+                          <BarChart3 className="w-2.5 h-2.5" /> Gantt
+                        </Badge>
+                      )}
                       {!proj.isNew && !isAdmin && (
                         <Lock className="w-3 h-3 text-muted-foreground" />
                       )}
@@ -368,6 +374,18 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
                       )}
                     </div>
                   </div>
+                  {/* Gantt navigation shortcut (stops propagation so it doesn't toggle collapse) */}
+                  {proj.ganttEnabled && onNavigateToGantt && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 h-7 text-[10px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                      onClick={e => { e.stopPropagation(); onNavigateToGantt(); }}
+                    >
+                      <GanttChart className="w-3 h-3" />
+                      Planification
+                    </Button>
+                  )}
                   {expandedId === proj.id ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
                 </button>
               </CollapsibleTrigger>
@@ -391,7 +409,7 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
 
                   {/* Lock notice */}
                   {!canFreeEdit(proj) && (
-                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3 text-xs text-orange-800">
                       <ShieldAlert className="w-4 h-4 shrink-0" />
                       <span>Ce projet est verrouillé. {canShowEditButton(proj) ? "Cliquez sur « Modifier » pour éditer." : "Toute modification sera soumise au Directeur Général pour validation."}</span>
                     </div>
@@ -414,6 +432,44 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
                       Date de création : {format(new Date(proj.createdAt + "T00:00:00"), "dd MMMM yyyy", { locale: fr })}
                     </div>
                   )}
+
+                  {/* Gantt toggle */}
+                  <div className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2.5 border border-border/50">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-primary" />
+                      <div>
+                        <p className="text-xs font-semibold">Diagramme de Gantt</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {proj.ganttEnabled
+                            ? "Gantt activé — les collaborateurs peuvent définir leurs jalons depuis la page Planification"
+                            : "Activer pour permettre la planification visuelle des jalons"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {proj.ganttEnabled && onNavigateToGantt && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[10px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                          onClick={onNavigateToGantt}
+                        >
+                          <GanttChart className="w-3 h-3" />
+                          Ouvrir Planification
+                        </Button>
+                      )}
+                      <Switch
+                        checked={!!proj.ganttEnabled}
+                        onCheckedChange={v => {
+                          if (canFreeEdit(proj)) {
+                            updateProject({ ...proj, ganttEnabled: v });
+                          } else {
+                            toast({ title: "Verrouillé", description: "Activez le mode modification pour changer ce paramètre." });
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
 
                   {/* General */}
                   <div className="space-y-3">
@@ -774,33 +830,62 @@ const ProjectsView = ({ initialExpandedId, onNavigateToGantt }: { initialExpande
                                             )}
                                           </div>
 
-                                          {/* Deadline */}
-                                          <div className="flex items-center gap-1.5">
-                                            <CalendarIcon className="w-2.5 h-2.5 text-muted-foreground" />
-                                            <span className="text-[9px] text-muted-foreground">Deadline :</span>
-                                            {canFreeEdit(proj) ? (
-                                              <Popover>
-                                                <PopoverTrigger asChild>
-                                                  <Button variant="outline" size="sm" className={cn("h-5 text-[9px] gap-1 w-28 justify-start", !ms.deadline && "text-muted-foreground")}>
-                                                    <CalendarIcon className="w-2 h-2" />
-                                                    {ms.deadline ? format(new Date(ms.deadline + "T00:00:00"), "dd/MM/yyyy") : "Choisir"}
-                                                  </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                  <Calendar
-                                                    mode="single"
-                                                    selected={ms.deadline ? new Date(ms.deadline + "T00:00:00") : undefined}
-                                                    onSelect={(date) => {
-                                                      if (date) updateMissionMilestone(mIdx, ms.id, "deadline", format(date, "yyyy-MM-dd"));
-                                                    }}
-                                                    initialFocus
-                                                    className="p-3 pointer-events-auto"
-                                                  />
-                                                </PopoverContent>
-                                              </Popover>
-                                            ) : (
-                                              <span className="text-[9px]">{ms.deadline ? format(new Date(ms.deadline + "T00:00:00"), "dd/MM/yyyy") : "—"}</span>
-                                            )}
+                                          {/* Dates Gantt */}
+                                          <div className="flex items-center gap-3 flex-wrap">
+                                            <div className="flex items-center gap-1.5">
+                                              <CalendarIcon className="w-2.5 h-2.5 text-muted-foreground" />
+                                              <span className="text-[9px] text-muted-foreground">Début :</span>
+                                              {canFreeEdit(proj) ? (
+                                                <Popover>
+                                                  <PopoverTrigger asChild>
+                                                    <Button variant="outline" size="sm" className={cn("h-5 text-[9px] gap-1 w-24 justify-start", !ms.startDate && "text-muted-foreground")}>
+                                                      <CalendarIcon className="w-2 h-2" />
+                                                      {ms.startDate ? format(new Date(ms.startDate + "T00:00:00"), "dd/MM/yyyy") : "Choisir"}
+                                                    </Button>
+                                                  </PopoverTrigger>
+                                                  <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                      mode="single"
+                                                      selected={ms.startDate ? new Date(ms.startDate + "T00:00:00") : undefined}
+                                                      onSelect={(date) => {
+                                                        if (date) updateMissionMilestone(mIdx, ms.id, "startDate", format(date, "yyyy-MM-dd"));
+                                                      }}
+                                                      initialFocus
+                                                      className="p-3 pointer-events-auto"
+                                                    />
+                                                  </PopoverContent>
+                                                </Popover>
+                                              ) : (
+                                                <span className="text-[9px]">{ms.startDate ? format(new Date(ms.startDate + "T00:00:00"), "dd/MM/yyyy") : "—"}</span>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                              <CalendarIcon className="w-2.5 h-2.5 text-primary" />
+                                              <span className="text-[9px] text-muted-foreground">Deadline :</span>
+                                              {canFreeEdit(proj) ? (
+                                                <Popover>
+                                                  <PopoverTrigger asChild>
+                                                    <Button variant="outline" size="sm" className={cn("h-5 text-[9px] gap-1 w-24 justify-start", !ms.deadline && "text-muted-foreground")}>
+                                                      <CalendarIcon className="w-2 h-2" />
+                                                      {ms.deadline ? format(new Date(ms.deadline + "T00:00:00"), "dd/MM/yyyy") : "Choisir"}
+                                                    </Button>
+                                                  </PopoverTrigger>
+                                                  <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                      mode="single"
+                                                      selected={ms.deadline ? new Date(ms.deadline + "T00:00:00") : undefined}
+                                                      onSelect={(date) => {
+                                                        if (date) updateMissionMilestone(mIdx, ms.id, "deadline", format(date, "yyyy-MM-dd"));
+                                                      }}
+                                                      initialFocus
+                                                      className="p-3 pointer-events-auto"
+                                                    />
+                                                  </PopoverContent>
+                                                </Popover>
+                                              ) : (
+                                                <span className="text-[9px]">{ms.deadline ? format(new Date(ms.deadline + "T00:00:00"), "dd/MM/yyyy") : "—"}</span>
+                                              )}
+                                            </div>
                                           </div>
 
                                           {/* Deliverable deposit */}

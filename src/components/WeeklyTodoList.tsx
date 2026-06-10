@@ -493,7 +493,7 @@ const WeeklyTodoList = ({ onTodosChanged, refreshKey = 0 }: { onTodosChanged?: (
   const statusBadge = () => {
     switch (status) {
       case "draft": return <Badge variant="outline" className="text-[9px] px-1.5 py-0 gap-1 border-muted-foreground/30"><Clock className="w-2.5 h-2.5" /> Brouillon</Badge>;
-      case "submitted": return <Badge className="text-[9px] px-1.5 py-0 gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0"><Send className="w-2.5 h-2.5" /> En attente de validation</Badge>;
+      case "submitted": return <Badge className="text-[9px] px-1.5 py-0 gap-1 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0"><Send className="w-2.5 h-2.5" /> En attente de validation</Badge>;
       case "validated": return <Badge className="text-[9px] px-1.5 py-0 gap-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0"><CheckCircle2 className="w-2.5 h-2.5" /> Validé</Badge>;
       case "rejected": return <Badge className="text-[9px] px-1.5 py-0 gap-1 bg-destructive/10 text-destructive border-0"><XCircle className="w-2.5 h-2.5" /> Rejeté</Badge>;
     }

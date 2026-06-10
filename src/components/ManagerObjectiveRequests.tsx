@@ -202,7 +202,7 @@ const ManagerObjectiveRequests = () => {
   };
 
   const statusConfig: Record<string, { label: string; icon: LucideIcon; color: string }> = {
-    pending: { label: "En attente", icon: Clock, color: "bg-amber-100 text-amber-800" },
+    pending: { label: "En attente", icon: Clock, color: "bg-orange-100 text-orange-800" },
     approved: { label: isAdmin ? "Approuvée & Appliquée" : "Approuvée (transmise au DG)", icon: isAdmin ? CheckCircle2 : Send, color: isAdmin ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800" },
     rejected: { label: "Refusée", icon: XCircle, color: "bg-red-100 text-red-800" },
   };
@@ -247,7 +247,7 @@ const ManagerObjectiveRequests = () => {
           <FileText className="w-4 h-4 text-primary" />
           Demandes de modification {isAdmin ? "des collaborateurs" : "de vos collaborateurs"}
           {pendingCount > 0 && (
-            <Badge className="bg-amber-100 text-amber-800 text-[10px]">{pendingCount} en attente</Badge>
+            <Badge className="bg-orange-100 text-orange-800 text-[10px]">{pendingCount} en attente</Badge>
           )}
         </CardTitle>
         <div className="flex items-center gap-1 mt-2">
@@ -282,7 +282,7 @@ const ManagerObjectiveRequests = () => {
               const isPending = isPendingForCurrentUser(group);
 
               return (
-                <Card key={group.key} className={`transition-shadow ${isPending ? "border-amber-300" : ""}`}>
+                <Card key={group.key} className={`transition-shadow ${isPending ? "border-orange-300" : ""}`}>
                   <CardContent className="p-3 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className={`${cfg.color} text-[10px]`}>

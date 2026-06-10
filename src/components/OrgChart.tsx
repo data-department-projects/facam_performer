@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ZoomIn, ZoomOut, RotateCcw, Maximize2, Minimize2,
-  Search, X, Users, Layers, Grid3X3, GitBranch,
+  Search, X, Users, Layers, Grid3X3,
   Map, Pencil, User, ChevronRight, Calendar, Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -84,8 +84,8 @@ const DGCard = ({ org, orgView, pos, isAdmin, onEdit, entered }: DGCardProps) =>
       className="group"
     >
       <div className="relative rounded-2xl overflow-hidden shadow-xl ring-1 ring-primary/20">
-        {/* Gold accent bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-amber-300" />
+        {/* Blue accent bar */}
+        <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-primary/40" />
         <div className="bg-secondary px-5 py-4">
           {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3">
@@ -349,9 +349,9 @@ const OrgDrawer = ({
                   <p className="text-[20px] font-bold text-emerald-600">{doneMS}</p>
                   <p className="text-[9.5px] text-emerald-500 font-semibold uppercase tracking-wider mt-0.5">Complétés</p>
                 </div>
-                <div className="flex-1 rounded-xl bg-amber-50 p-3 text-center">
-                  <p className="text-[20px] font-bold text-amber-500">{inProgMS}</p>
-                  <p className="text-[9.5px] text-amber-500 font-semibold uppercase tracking-wider mt-0.5">En cours</p>
+                <div className="flex-1 rounded-xl bg-blue-50 p-3 text-center">
+                  <p className="text-[20px] font-bold text-blue-500">{inProgMS}</p>
+                  <p className="text-[9.5px] text-blue-500 font-semibold uppercase tracking-wider mt-0.5">En cours</p>
                 </div>
                 <div className="flex-1 rounded-xl bg-muted p-3 text-center">
                   <p className="text-[20px] font-bold text-muted-foreground">{allMS.length - doneMS - inProgMS}</p>
@@ -496,7 +496,10 @@ const GridView = ({
     ? depts.filter(d =>
         d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.nameTomorrow.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.head.toLowerCase().includes(searchQuery.toLowerCase()))
+        d.head.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (d.head2 || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.compositionToday.some(m => m.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        d.compositionTomorrow.some(m => m.name.toLowerCase().includes(searchQuery.toLowerCase())))
     : depts;
 
   return (
@@ -560,19 +563,15 @@ const GridView = ({
 /* ─────────────────────────────────────────
    MAIN COMPONENT
 ───────────────────────────────────────── */
-interface OrgChartProps {
-  view?: "today" | "tomorrow";
-}
-
-const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
+const OrgChart = () => {
   const { departments }                    = useDepartments();
   const { organization, updateOrganization } = useOrganization();
   const { isAdmin }                        = useAuth();
   const profiles                           = useProfiles();
 
   /* ── State ── */
-  const [orgView, setOrgView]             = useState<"today" | "tomorrow">(externalView);
-  const [viewMode, setViewMode]           = useState<"tree" | "grid" | "auto">("tree");
+  const orgView                           = "today" as const;
+  const [viewMode, setViewMode]           = useState<"tree" | "grid" | "auto">("grid");
   const [scale, setScale]                 = useState(0.78);
   const [pan, setPan]                     = useState({ x: 0, y: 0 });
   const [selectedDept, setSelectedDept]   = useState<Department | null>(null);
@@ -620,7 +619,10 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
     return visibleDepts.findIndex(d =>
       d.name.toLowerCase().includes(q) ||
       d.nameTomorrow.toLowerCase().includes(q) ||
-      d.head.toLowerCase().includes(q)
+      d.head.toLowerCase().includes(q) ||
+      (d.head2 || "").toLowerCase().includes(q) ||
+      d.compositionToday.some(m => m.name.toLowerCase().includes(q)) ||
+      d.compositionTomorrow.some(m => m.name.toLowerCase().includes(q))
     );
   }, [searchQuery, visibleDepts]);
 
@@ -757,18 +759,6 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
           isPresentation ? "bg-white/10" : "bg-muted"
         )}>
           <button
-            onClick={() => setViewMode("tree")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all",
-              viewMode === "tree"
-                ? "bg-white shadow-sm text-secondary"
-                : isPresentation ? "text-white/50 hover:text-white/80" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <GitBranch className="w-3.5 h-3.5" />
-            Arbre
-          </button>
-          <button
             onClick={() => setViewMode("grid")}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all",
@@ -793,27 +783,6 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
             Hiérarchie
           </button>
         </div>
-
-        {/* Today / Tomorrow — masqué en mode Hiérarchie automatique */}
-        {viewMode !== "auto" && <div className={cn(
-          "flex items-center gap-0.5 rounded-xl p-0.5",
-          isPresentation ? "bg-white/10" : "bg-muted"
-        )}>
-          {(["today", "tomorrow"] as const).map(v => (
-            <button
-              key={v}
-              onClick={() => setOrgView(v)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all",
-                orgView === v
-                  ? "bg-secondary text-white shadow-sm"
-                  : isPresentation ? "text-white/50 hover:text-white/80" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {v === "today" ? "Aujourd'hui" : "Demain"}
-            </button>
-          ))}
-        </div>}
 
         {/* Search */}
         <div className="relative flex-1 max-w-[240px]">
@@ -984,7 +953,8 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
                 if (!pos) return null;
                 const midX   = pos.x + CW / 2;
                 const isLit  = !spotlightOn || selectedDept?.id === dept.id;
-                const isSearchHit = !searchQuery || dept.name.toLowerCase().includes(searchQuery.toLowerCase()) || dept.head.toLowerCase().includes(searchQuery.toLowerCase());
+                const sq = searchQuery.toLowerCase();
+                const isSearchHit = !searchQuery || dept.name.toLowerCase().includes(sq) || dept.head.toLowerCase().includes(sq) || (dept.head2 || "").toLowerCase().includes(sq) || dept.compositionToday.some(m => m.name.toLowerCase().includes(sq)) || dept.compositionTomorrow.some(m => m.name.toLowerCase().includes(sq));
 
                 return (
                   <motion.line
@@ -993,7 +963,7 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
                     x2={midX} y2={pos.y}
                     stroke={
                       selectedDept?.id === dept.id
-                        ? "#ffae03"
+                        ? "#FFAE03"
                         : isPresentation
                         ? "rgba(255,255,255,0.12)"
                         : "rgba(0,27,97,0.13)"
@@ -1027,7 +997,7 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
               const dimmed      = spotlightOn && !isSelected;
               const q           = searchQuery.trim().toLowerCase();
               const isMatch     = q
-                ? dept.name.toLowerCase().includes(q) || dept.head.toLowerCase().includes(q) || dept.nameTomorrow.toLowerCase().includes(q)
+                ? dept.name.toLowerCase().includes(q) || dept.head.toLowerCase().includes(q) || dept.nameTomorrow.toLowerCase().includes(q) || (dept.head2 || "").toLowerCase().includes(q) || dept.compositionToday.some(m => m.name.toLowerCase().includes(q)) || dept.compositionTomorrow.some(m => m.name.toLowerCase().includes(q))
                 : null;
 
               return (
@@ -1078,7 +1048,7 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
               className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-secondary/90 text-white text-[11px] font-semibold backdrop-blur-sm shadow-lg flex items-center gap-2 pointer-events-none"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Mode spotlight — {orgView === "tomorrow" ? (selectedDept.nameTomorrow || selectedDept.name) : selectedDept.name}
+              Mode spotlight — {selectedDept.name}
             </motion.div>
           )}
         </div>
@@ -1088,6 +1058,7 @@ const OrgChart = ({ view: externalView = "today" }: OrgChartProps) => {
           <OrgChartAutoView
             profiles={profiles}
             departments={departments}
+            searchQuery={searchQuery}
           />
         </div>
       ) : (

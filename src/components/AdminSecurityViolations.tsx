@@ -41,7 +41,7 @@ const VIOLATION_LABELS: Record<string, string> = {
 const SEVERITY_MAP: Record<string, { label: string; color: string }> = {
   rls_bypass_attempt: { label: "Critique", color: "bg-red-600" },
   data_tampering: { label: "Élevé", color: "bg-orange-500" },
-  unauthorized_access: { label: "Moyen", color: "bg-yellow-500" },
+  unauthorized_access: { label: "Moyen", color: "bg-blue-400" },
   suspicious_activity: { label: "Faible", color: "bg-blue-500" },
 };
 
@@ -217,9 +217,9 @@ const AdminSecurityViolations = () => {
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Dernières 24h</p>
           </CardContent>
         </Card>
-        <Card className="border-yellow-500/20">
+        <Card className="border-blue-400/20">
           <CardContent className="pt-4 pb-3 text-center">
-            <p className="text-2xl font-bold text-yellow-600">{stats.last7d}</p>
+            <p className="text-2xl font-bold text-blue-500">{stats.last7d}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">7 derniers jours</p>
           </CardContent>
         </Card>
