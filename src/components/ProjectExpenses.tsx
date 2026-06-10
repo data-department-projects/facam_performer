@@ -27,6 +27,8 @@ interface Expense {
   expense_date: string;
   created_by: string;
   created_at: string;
+  payment_method?: string | null;
+  comment?: string | null;
 }
 
 interface ProjectExpensesProps {
@@ -47,6 +49,8 @@ const ProjectExpenses = ({ projectId }: ProjectExpensesProps) => {
     description: "",
     amount: "",
     date: new Date().toISOString().split("T")[0],
+    paymentMethod: "",
+    comment: "",
   });
 
   const fetchData = async () => {
@@ -96,12 +100,14 @@ const ProjectExpenses = ({ projectId }: ProjectExpensesProps) => {
       amount: parseFloat(newExpense.amount),
       expense_date: newExpense.date,
       created_by: user.id,
+      payment_method: newExpense.paymentMethod || null,
+      comment: newExpense.comment.trim() || null,
     });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Dépense ajoutée ✓" });
-      setNewExpense({ typeId: "", description: "", amount: "", date: new Date().toISOString().split("T")[0] });
+      setNewExpense({ typeId: "", description: "", amount: "", date: new Date().toISOString().split("T")[0], paymentMethod: "", comment: "" });
       fetchData();
     }
   };
@@ -169,7 +175,7 @@ const ProjectExpenses = ({ projectId }: ProjectExpensesProps) => {
       {/* Add new expense */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Nouvelle dépense</span>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div className="space-y-1">
             <Label className="text-[10px]">Typologie</Label>
             <Select value={newExpense.typeId} onValueChange={v => setNewExpense(p => ({ ...p, typeId: v }))}>
@@ -180,22 +186,37 @@ const ProjectExpenses = ({ projectId }: ProjectExpensesProps) => {
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">Description</Label>
+            <Label className="text-[10px]">Description *</Label>
             <Input value={newExpense.description} onChange={e => setNewExpense(p => ({ ...p, description: e.target.value }))} placeholder="Détail de la dépense" className="text-xs h-7" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">Montant (Fr CFA)</Label>
+            <Label className="text-[10px]">Montant (Fr CFA) *</Label>
             <Input type="number" value={newExpense.amount} onChange={e => setNewExpense(p => ({ ...p, amount: e.target.value }))} placeholder="0" className="text-xs h-7" />
           </div>
-          <div className="flex gap-2 items-end">
-            <div className="space-y-1 flex-1">
-              <Label className="text-[10px]">Date</Label>
-              <Input type="date" value={newExpense.date} onChange={e => setNewExpense(p => ({ ...p, date: e.target.value }))} className="text-xs h-7" />
-            </div>
-            <Button size="sm" className="h-7 text-[10px] gap-1" onClick={addExpense}>
-              <Plus className="w-3 h-3" /> Ajouter
-            </Button>
+          <div className="space-y-1">
+            <Label className="text-[10px]">Date</Label>
+            <Input type="date" value={newExpense.date} onChange={e => setNewExpense(p => ({ ...p, date: e.target.value }))} className="text-xs h-7" />
           </div>
+          <div className="space-y-1">
+            <Label className="text-[10px]">Moyen de paiement</Label>
+            <Select value={newExpense.paymentMethod} onValueChange={v => setNewExpense(p => ({ ...p, paymentMethod: v }))}>
+              <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Choisir..." /></SelectTrigger>
+              <SelectContent>
+                {["Virement", "Espèces", "Chèque", "Mobile Money", "Carte bancaire", "Autre"].map(m => (
+                  <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[10px]">Commentaire</Label>
+            <Input value={newExpense.comment} onChange={e => setNewExpense(p => ({ ...p, comment: e.target.value }))} placeholder="Remarque optionnelle..." className="text-xs h-7" />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button size="sm" className="h-7 text-[10px] gap-1" onClick={addExpense}>
+            <Plus className="w-3 h-3" /> Ajouter la dépense
+          </Button>
         </div>
       </div>
 
@@ -204,14 +225,20 @@ const ProjectExpenses = ({ projectId }: ProjectExpensesProps) => {
         <div className="space-y-1.5">
           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Historique des dépenses</span>
           {expenses.map(e => (
-            <div key={e.id} className="flex items-center gap-2 text-[11px] bg-card rounded-md px-3 py-2 border border-border">
-              <span className="text-muted-foreground shrink-0">{format(new Date(e.expense_date + "T00:00:00"), "dd/MM/yyyy", { locale: fr })}</span>
-              {e.expense_type_id && <Badge variant="outline" className="text-[9px]">{getTypeName(e.expense_type_id)}</Badge>}
-              <span className="flex-1 truncate">{e.description}</span>
-              <span className="font-semibold shrink-0">{Number(e.amount).toLocaleString("fr-FR")} Fr CFA</span>
-              <button onClick={() => deleteExpense(e.id)} className="text-muted-foreground hover:text-destructive shrink-0">
-                <Trash2 className="w-3 h-3" />
-              </button>
+            <div key={e.id} className="bg-card rounded-md px-3 py-2.5 border border-border space-y-1">
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-muted-foreground shrink-0">{format(new Date(e.expense_date + "T00:00:00"), "dd/MM/yyyy", { locale: fr })}</span>
+                {e.expense_type_id && <Badge variant="outline" className="text-[9px]">{getTypeName(e.expense_type_id)}</Badge>}
+                {e.payment_method && <Badge variant="secondary" className="text-[9px]">{e.payment_method}</Badge>}
+                <span className="flex-1 truncate font-medium">{e.description}</span>
+                <span className="font-bold shrink-0">{Number(e.amount).toLocaleString("fr-FR")} Fr CFA</span>
+                <button onClick={() => deleteExpense(e.id)} className="text-muted-foreground hover:text-destructive shrink-0">
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+              {e.comment && (
+                <p className="text-[10px] text-muted-foreground pl-0.5 italic">{e.comment}</p>
+              )}
             </div>
           ))}
         </div>

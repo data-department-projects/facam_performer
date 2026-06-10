@@ -23,7 +23,7 @@ const NotFound = () => {
         className="text-center relative z-10"
       >
         <div className="mb-6 inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/5 border border-primary/10">
-          <span className="text-3xl font-bold text-gradient-gold">404</span>
+          <span className="text-3xl font-bold text-primary">404</span>
         </div>
         <h1 className="mb-2 text-2xl font-semibold tracking-tight">Page introuvable</h1>
         <p className="mb-6 text-sm text-muted-foreground max-w-sm mx-auto">

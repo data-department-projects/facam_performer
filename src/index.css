@@ -6,61 +6,61 @@
   :root {
     /* === CHARTE FACAM STAIRWAY — Thème Clair Blanc === */
     --background: 0 0% 100%; /* #ffffff */
-    --foreground: 224 100% 10%; /* #000d32 */
+    --foreground: 223 100% 10%; /* #000b33 — navy sombre */
 
-    --card: 0 0% 100%; /* #ffffff */
-    --card-foreground: 224 100% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 223 100% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 100% 10%;
+    --popover-foreground: 223 100% 10%;
 
-    --primary: 41 100% 50%; /* #ffae03 */
-    --primary-foreground: 0 0% 0%; /* #000000 */
+    --primary: 41 100% 50%; /* #FFAE03 — doré FACAM, boutons CTA */
+    --primary-foreground: 223 100% 12%; /* navy sombre sur doré */
 
-    --secondary: 217 100% 22%; /* #002a6e */
+    --secondary: 223 100% 19%; /* #001B61 — navy FACAM */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 43% 97%; /* #f0f4fa */
-    --muted-foreground: 220 13% 46%;
+    --muted: 223 40% 97%; /* bleu très clair */
+    --muted-foreground: 223 20% 46%;
 
-    --accent: 220 43% 97%; /* #f0f4fa */
-    --accent-foreground: 224 100% 10%;
+    --accent: 223 40% 97%;
+    --accent-foreground: 223 100% 19%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%; /* gris bleu clair */
-    --input: 220 20% 88%;
-    --ring: 41 100% 50%; /* #ffae03 */
+    --border: 223 22% 88%;
+    --input: 223 22% 88%;
+    --ring: 223 75% 42%;
 
     --radius: 0.625rem;
 
-    /* Sidebar : fond blanc, texte bleu FACAM */
-    --sidebar-background: 0 0% 100%; /* blanc */
-    --sidebar-foreground: 224 100% 19%; /* #001b61 navy */
-    --sidebar-primary: 41 100% 50%; /* or FACAM */
-    --sidebar-primary-foreground: 224 100% 10%;
-    --sidebar-accent: 220 60% 96%; /* bleu très clair */
-    --sidebar-accent-foreground: 224 100% 19%;
-    --sidebar-border: 220 20% 90%; /* gris bleu très clair */
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 223 100% 19%; /* #001B61 */
+    --sidebar-primary: 223 75% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 223 55% 95%;
+    --sidebar-accent-foreground: 223 100% 19%;
+    --sidebar-border: 223 22% 90%;
     --sidebar-ring: 41 100% 50%;
 
     /* Premium tokens */
-    --surface-elevated: 220 43% 97%; /* #f0f4fa */
+    --surface-elevated: 223 35% 97%;
     --amber-glow: 41 100% 50%;
     --teal-accent: 210 80% 45%;
-    --navy-deep: 224 100% 19%;
-    --gold: 41 100% 50%;
+    --navy-deep: 223 100% 19%;       /* #001B61 */
+    --navy-medium: 223 75% 32%;
+    --gold: 41 100% 50%;             /* #FFAE03 — doré FACAM */
     --gold-light: 41 85% 58%;
     --gold-dark: 41 90% 40%;
-    --navy-medium: 225 60% 45%;
-    --gradient-hero: linear-gradient(135deg, hsl(41 100% 50%), hsl(35 95% 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(223 100% 12%), hsl(223 100% 22%));
     --gradient-gold: linear-gradient(135deg, hsl(41 100% 50%), hsl(30 85% 40%));
-    --gradient-navy: linear-gradient(180deg, hsl(224 100% 19%), hsl(217 100% 22%));
+    --gradient-navy: linear-gradient(180deg, hsl(223 100% 12%), hsl(223 100% 19%));
     --shadow-card: 0 0 0 1px rgba(0, 27, 97, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
     --shadow-elevated: 0 0 0 1px rgba(0, 27, 97, 0.08), 0 8px 32px rgba(0, 0, 0, 0.1);
     --shadow-gold: 0 0 0 1px hsl(41 100% 50% / 0.25), 0 4px 20px hsl(41 100% 50% / 0.12);
-    --glow-primary: 0 0 20px hsl(41 100% 50% / 0.2);
+    --glow-primary: 0 0 24px hsl(41 100% 50% / 0.40); /* halo doré sur bouton CTA */
     --glow-destructive: 0 0 20px hsl(0 72% 51% / 0.1);
 
     --font-display: 'Montserrat', system-ui, -apple-system, sans-serif;
@@ -70,45 +70,45 @@
   /* Dark reste identique au clair car on veut du blanc partout */
   .dark {
     --background: 0 0% 100%;
-    --foreground: 224 100% 10%;
+    --foreground: 223 100% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 224 100% 10%;
+    --card-foreground: 223 100% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 100% 10%;
+    --popover-foreground: 223 100% 10%;
     --primary: 41 100% 50%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 217 100% 22%;
+    --primary-foreground: 223 100% 12%;
+    --secondary: 223 100% 19%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 220 43% 97%;
-    --muted-foreground: 220 13% 46%;
-    --accent: 220 43% 97%;
-    --accent-foreground: 224 100% 10%;
+    --muted: 223 40% 97%;
+    --muted-foreground: 223 20% 46%;
+    --accent: 223 40% 97%;
+    --accent-foreground: 223 100% 19%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --ring: 41 100% 50%;
+    --border: 223 22% 88%;
+    --input: 223 22% 88%;
+    --ring: 223 75% 42%;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 224 100% 19%;
+    --sidebar-foreground: 223 100% 19%;
     --sidebar-primary: 41 100% 50%;
-    --sidebar-primary-foreground: 224 100% 10%;
-    --sidebar-accent: 220 60% 96%;
-    --sidebar-accent-foreground: 224 100% 19%;
-    --sidebar-border: 220 20% 90%;
+    --sidebar-primary-foreground: 223 100% 12%;
+    --sidebar-accent: 223 55% 95%;
+    --sidebar-accent-foreground: 223 100% 19%;
+    --sidebar-border: 223 22% 90%;
     --sidebar-ring: 41 100% 50%;
 
-    --surface-elevated: 220 43% 97%;
+    --surface-elevated: 223 35% 97%;
     --amber-glow: 41 100% 50%;
     --teal-accent: 210 80% 45%;
-    --navy-deep: 224 100% 19%;
+    --navy-deep: 223 100% 19%;
     --gold: 41 100% 50%;
     --gold-light: 41 85% 58%;
     --gold-dark: 41 90% 40%;
-    --navy-medium: 225 60% 45%;
-    --gradient-hero: linear-gradient(135deg, hsl(41 100% 50%), hsl(35 95% 45%));
+    --navy-medium: 223 75% 32%;
+    --gradient-hero: linear-gradient(135deg, hsl(223 100% 12%), hsl(223 100% 22%));
     --gradient-gold: linear-gradient(135deg, hsl(41 100% 50%), hsl(30 85% 40%));
-    --gradient-navy: linear-gradient(180deg, hsl(224 100% 19%), hsl(217 100% 22%));
+    --gradient-navy: linear-gradient(180deg, hsl(223 100% 12%), hsl(223 100% 19%));
     --shadow-card: 0 0 0 1px rgba(0, 27, 97, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
     --shadow-elevated: 0 0 0 1px rgba(0, 27, 97, 0.08), 0 8px 32px rgba(0, 0, 0, 0.1);
     --shadow-gold: 0 0 0 1px hsl(41 100% 50% / 0.25), 0 4px 20px hsl(41 100% 50% / 0.12);

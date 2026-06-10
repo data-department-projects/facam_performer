@@ -372,7 +372,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
           </div>
           Validation des plannings — Équipe
           {submitted.length > 0 && (
-            <Badge className="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0 animate-pulse">
+            <Badge className="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0 animate-pulse">
               <AlertTriangle className="w-3 h-3 mr-1" />
               {submitted.length} en attente de validation
             </Badge>
@@ -405,7 +405,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
                   key={planner.planner_id}
                   className={`rounded-lg border overflow-hidden transition-all ${
                     isSubmitted
-                      ? "border-amber-300 dark:border-amber-600 bg-amber-50/30 dark:bg-amber-950/10"
+                      ? "border-orange-300 dark:border-orange-600 bg-orange-50/30 dark:bg-orange-950/10"
                       : "border-border/50"
                   }`}
                 >
@@ -423,7 +423,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
                     </div>
                     <div className="flex items-center gap-2">
                       {isSubmitted && (
-                        <Badge className="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0">
+                        <Badge className="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0">
                           <Clock className="w-3 h-3 mr-1" /> En attente
                         </Badge>
                       )}
@@ -650,7 +650,7 @@ const ManagerWeeklyValidation = ({ scrollToSelf, onScrolled }: { scrollToSelf?: 
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-9 text-xs gap-1.5 flex-1 border-amber-400 text-amber-700 hover:bg-amber-50 dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-950/20"
+                              className="h-9 text-xs gap-1.5 flex-1 border-orange-400 text-orange-700 hover:bg-orange-50 dark:border-orange-600 dark:text-orange-400 dark:hover:bg-orange-950/20"
                               onClick={() => handleSendBack(planner)}
                             >
                               <RotateCcw className="w-4 h-4" /> Renvoyer pour modification

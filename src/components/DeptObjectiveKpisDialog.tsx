@@ -225,7 +225,7 @@ const DeptObjectiveKpisDialog = ({ open, onOpenChange, objectiveId, objectiveTit
                         </TableCell>
                         <TableCell className="text-center">
                           {pct != null ? (
-                            <span className={`text-xs font-bold ${pct >= 100 ? "text-green-600" : pct >= 70 ? "text-yellow-600" : "text-destructive"}`}>
+                            <span className={`text-xs font-bold ${pct >= 100 ? "text-green-600" : pct >= 70 ? "text-orange-500" : "text-destructive"}`}>
                               {pct}%
                             </span>
                           ) : "—"}

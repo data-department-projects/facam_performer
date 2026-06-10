@@ -511,7 +511,7 @@ const OrgChartAutoView = ({ profiles, departments, searchQuery = "" }: OrgChartA
           {orphans > 0 && (
             <>
               <div className="w-px h-3.5 bg-border" />
-              <span className="text-[11px] text-amber-600">
+              <span className="text-[11px] text-orange-600">
                 <strong>{orphans}</strong> sans hiérarchie définie
               </span>
             </>
@@ -569,7 +569,7 @@ const OrgChartAutoView = ({ profiles, departments, searchQuery = "" }: OrgChartA
                   key={i}
                   d={`M ${e.x1} ${e.y1} C ${e.x1} ${midY}, ${e.x2} ${midY}, ${e.x2} ${e.y2}`}
                   fill="none"
-                  stroke="rgba(0,42,110,0.18)"
+                  stroke="rgba(0,27,97,0.18)"
                   strokeWidth={1.5}
                 />
               );
@@ -608,7 +608,7 @@ const OrgChartAutoView = ({ profiles, departments, searchQuery = "" }: OrgChartA
           Manager
         </span>
         <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <span className="w-8 h-px bg-secondary/30 inline-block" style={{ borderTop: "1.5px solid rgba(0,42,110,0.18)" }} />
+          <span className="w-8 h-px bg-secondary/30 inline-block" style={{ borderTop: "1.5px solid rgba(0,27,97,0.18)" }} />
           Lien hiérarchique
         </span>
         <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">

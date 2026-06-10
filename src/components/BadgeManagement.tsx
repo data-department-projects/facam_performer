@@ -609,7 +609,7 @@ const BadgeManagement = () => {
                               <ChevronDown className={cn("w-4 h-4 transition-transform", isOpen ? "" : "-rotate-90")} />
                               <span className="capitalize">{format(day, "EEEE dd MMMM", { locale: fr })}</span>
                               {isToday && <Badge variant="secondary" className="text-[10px]">Aujourd'hui</Badge>}
-                              {isWeekend && isCadreTab && <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">Optionnel (min. 1/dept)</Badge>}
+                              {isWeekend && isCadreTab && <Badge variant="outline" className="text-[10px] bg-orange-50 text-orange-700 border-orange-200">Optionnel (min. 1/dept)</Badge>}
                             </div>
                             <div className="flex items-center gap-2">
                               {weekendCadreAlerts.length > 0 && (

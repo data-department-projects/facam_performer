@@ -84,8 +84,8 @@ const DGCard = ({ org, orgView, pos, isAdmin, onEdit, entered }: DGCardProps) =>
       className="group"
     >
       <div className="relative rounded-2xl overflow-hidden shadow-xl ring-1 ring-primary/20">
-        {/* Gold accent bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-amber-300" />
+        {/* Blue accent bar */}
+        <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-primary/40" />
         <div className="bg-secondary px-5 py-4">
           {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3">
@@ -349,9 +349,9 @@ const OrgDrawer = ({
                   <p className="text-[20px] font-bold text-emerald-600">{doneMS}</p>
                   <p className="text-[9.5px] text-emerald-500 font-semibold uppercase tracking-wider mt-0.5">Complétés</p>
                 </div>
-                <div className="flex-1 rounded-xl bg-amber-50 p-3 text-center">
-                  <p className="text-[20px] font-bold text-amber-500">{inProgMS}</p>
-                  <p className="text-[9.5px] text-amber-500 font-semibold uppercase tracking-wider mt-0.5">En cours</p>
+                <div className="flex-1 rounded-xl bg-blue-50 p-3 text-center">
+                  <p className="text-[20px] font-bold text-blue-500">{inProgMS}</p>
+                  <p className="text-[9.5px] text-blue-500 font-semibold uppercase tracking-wider mt-0.5">En cours</p>
                 </div>
                 <div className="flex-1 rounded-xl bg-muted p-3 text-center">
                   <p className="text-[20px] font-bold text-muted-foreground">{allMS.length - doneMS - inProgMS}</p>
@@ -963,7 +963,7 @@ const OrgChart = () => {
                     x2={midX} y2={pos.y}
                     stroke={
                       selectedDept?.id === dept.id
-                        ? "#ffae03"
+                        ? "#FFAE03"
                         : isPresentation
                         ? "rgba(255,255,255,0.12)"
                         : "rgba(0,27,97,0.13)"

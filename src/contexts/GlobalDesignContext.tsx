@@ -46,22 +46,22 @@ export type GlobalDesignSettings = ModuleDesignSettings;
 export const DEFAULT_GLOBAL_DESIGN: ModuleDesignSettings = {
   // === Charte FACAM STAIRWAY — Thème Blanc ===
   backgroundColor: "0 0% 100%",          // blanc pur
-  foregroundColor: "224 100% 10%",        // #000d32 navy sombre
+  foregroundColor: "223 100% 10%",        // #000b33 navy sombre
   cardColor: "0 0% 100%",                 // blanc
-  primaryColor: "41 100% 50%",            // #ffae03 or FACAM
-  primaryForeground: "0 0% 0%",           // noir sur or
-  secondaryColor: "217 100% 22%",         // #002a6e bleu FACAM
-  accentColor: "220 43% 97%",             // #f0f4fa bleu très clair
-  mutedColor: "220 43% 97%",              // bleu très clair
-  mutedForeground: "220 13% 46%",         // gris moyen
-  borderColor: "220 20% 88%",             // gris bleu clair
+  primaryColor: "41 100% 50%",            // #FFAE03 doré FACAM, boutons CTA
+  primaryForeground: "223 100% 12%",      // navy sombre sur doré
+  secondaryColor: "223 100% 19%",         // #001B61 navy FACAM
+  accentColor: "223 40% 97%",             // bleu très clair
+  mutedColor: "223 40% 97%",              // bleu très clair
+  mutedForeground: "223 20% 46%",         // gris moyen
+  borderColor: "223 22% 88%",             // gris bleu clair
   destructiveColor: "0 72% 51%",
 
   sidebarBg: "0 0% 100%",                 // sidebar blanche
-  sidebarForeground: "224 100% 19%",      // #001b61 navy
-  sidebarPrimary: "41 100% 50%",          // or FACAM
-  sidebarAccent: "220 60% 96%",           // bleu très clair
-  sidebarBorder: "220 20% 90%",           // gris clair
+  sidebarForeground: "223 100% 19%",      // #001B61 navy
+  sidebarPrimary: "41 100% 50%",          // doré FACAM
+  sidebarAccent: "223 55% 95%",           // bleu très clair
+  sidebarBorder: "223 22% 90%",           // gris bleu clair
 
   headerBg: "",
   headerForeground: "",

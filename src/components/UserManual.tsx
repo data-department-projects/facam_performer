@@ -70,7 +70,7 @@ const UserManual = () => {
             <li>Les <strong className="text-foreground">collaborateurs</strong> sont listés par service sous chaque département</li>
           </ul>
           <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-muted/50">
-            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
             <p>L'organigramme est en <strong className="text-foreground">lecture seule</strong> pour les collaborateurs. Toute modification passe par l'administration.</p>
           </div>
         </div>
@@ -117,7 +117,7 @@ const UserManual = () => {
           </ul>
 
           <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-accent/50 border border-accent">
-            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground mb-1">Modifications verrouillées</p>
               <p>Si vous n'êtes pas chef de projet, vos modifications passent par une <strong className="text-foreground">demande de modification</strong> soumise à validation par l'administrateur.</p>
@@ -158,7 +158,7 @@ const UserManual = () => {
           </ol>
 
           <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-accent/50 border border-accent">
-            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground mb-1">Échéances importantes</p>
               <ul className="list-disc pl-4 space-y-1">
@@ -230,7 +230,7 @@ const UserManual = () => {
               </ol>
 
               <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-accent/50 border border-accent">
-                <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
                 <div>
                   <p className="font-medium text-foreground mb-1">Circuit de modification</p>
                   <p>Les demandes de modification suivent le circuit : <strong className="text-foreground">Collaborateur → Manager → DG</strong>. Vous voyez les demandes de vos subordonnés et pouvez les approuver ou rejeter avec un commentaire.</p>
@@ -241,7 +241,7 @@ const UserManual = () => {
 
           {!isManager && (
             <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-accent/50 border border-accent">
-              <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
               <div>
                 <p className="font-medium text-foreground mb-1">Demandes de modification</p>
                 <p>Pour modifier un objectif déjà validé, soumettez une <strong className="text-foreground">demande de changement</strong>. Celle-ci sera examinée par votre manager puis par le DG. Vous serez notifié du résultat via des badges et tooltips.</p>
@@ -298,7 +298,7 @@ const UserManual = () => {
             <li>Visualisez les <strong className="text-foreground">violations de sécurité</strong> détectées</li>
           </ul>
           <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-accent/50 border border-accent">
-            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
             <p>Ce module est réservé aux <strong className="text-foreground">administrateurs</strong>. Toutes les actions sont tracées dans le journal d'audit.</p>
           </div>
         </div>
