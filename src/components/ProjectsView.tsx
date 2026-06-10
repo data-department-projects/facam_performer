@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, ChevronDown, ChevronRight, FolderKanban, Lock, CalendarIcon, Users, Link2, Send, AlertTriangle, ShieldAlert, GanttChart, Pencil, BarChart3 } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, FolderKanban, Lock, CalendarIcon, Users, Send, ShieldAlert, GanttChart, Pencil, BarChart3 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
